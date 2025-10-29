@@ -1,25 +1,31 @@
-import rawSpecials from '../data/specials.json' assert { type: 'json' };
+let SPECIALS = [];
+const SPECIALS_BY_ID = new Map();
+const SPECIAL_IDS_BY_NAME = new Map();
+
+export async function loadSpecials() {
+    const response = await fetch('../data/specials.json');
+    const rawSpecials = await response.json();
+    SPECIALS = rawSpecials.map(entry => ({
+        ...entry,
+        when: normalizeWhenList(entry.when),
+        effect: { ...(entry.effect || {}) }
+    }));
+
+    SPECIALS_BY_ID.clear();
+    SPECIAL_IDS_BY_NAME.clear();
+
+    for (const special of SPECIALS) {
+        SPECIALS_BY_ID.set(special.id, special);
+        if (special.name) {
+            SPECIAL_IDS_BY_NAME.set(special.name, special.id);
+        }
+    }
+}
 
 const normalizeWhenList = (when) => {
   if (!when) return [];
   return Array.isArray(when) ? when.slice() : [when];
 };
-
-const SPECIALS = rawSpecials.map(entry => ({
-  ...entry,
-  when: normalizeWhenList(entry.when),
-  effect: { ...(entry.effect || {}) }
-}));
-
-const SPECIALS_BY_ID = new Map();
-const SPECIAL_IDS_BY_NAME = new Map();
-
-for (const special of SPECIALS) {
-  SPECIALS_BY_ID.set(special.id, special);
-  if (special.name) {
-    SPECIAL_IDS_BY_NAME.set(special.name, special.id);
-  }
-}
 
 const STACK_RULES = Object.freeze({
   sum: 'sum',

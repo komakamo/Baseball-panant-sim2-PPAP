@@ -802,6 +802,7 @@ import {
   normalizePlayerSpecials,
   playerHasSpecial,
   collectPlayerEffects,
+  loadSpecials,
   getPlayerEffects,
   findSpecialId,
   createPlateAppearanceSpecialEngine,
@@ -8727,7 +8728,8 @@ $$('#dashboard-tabs .dashboard-tab').forEach(btn=>{
 $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTabs((State.ui && State.ui.dashboardTab) || 'season'); renderManagementView(); };
 
 // ====== Boot ======
-(function init(){ 
+(async function init(){
+  await loadSpecials();
   // Custom confirm dialog replacement
   window.confirm = function(message) {
       // For this environment, we can't show a real modal dialog.
