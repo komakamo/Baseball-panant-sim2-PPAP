@@ -1,0 +1,138 @@
+[
+  {
+    "id": "power_hitter",
+    "name": "パワーヒッター",
+    "desc": "強烈なスイングでチームの長打力を押し上げる。",
+    "when": ["teamMods:lineup"],
+    "effect": { "pow": 2 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "slugger_elite",
+    "name": "長距離砲",
+    "desc": "圧倒的な飛距離で得点期待値を大きく高める。",
+    "when": ["teamMods:lineup"],
+    "effect": { "pow": 3 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "plate_discipline",
+    "name": "選球眼〇",
+    "desc": "選球眼が冴え渡り出塁率が向上する。",
+    "when": ["teamMods:lineup"],
+    "effect": { "onb": 2 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "contact_master",
+    "name": "巧打職人",
+    "desc": "巧みなバットコントロールで安打を量産する。",
+    "when": ["teamMods:lineup"],
+    "effect": { "onb": 3 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "speedster",
+    "name": "快足",
+    "desc": "抜群の俊足で出塁と進塁を後押しする。",
+    "when": ["teamMods:lineup"],
+    "effect": { "onb": 1 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "lefty_killer",
+    "name": "対左投手○",
+    "desc": "左投手相手で卓越した打撃を見せる。",
+    "when": ["teamMods:lineup"],
+    "effect": {},
+    "stackRule": "sum"
+  },
+  {
+    "id": "defense_specialist",
+    "name": "守備職人",
+    "desc": "鉄壁の守備で失点を防ぐ。",
+    "when": ["teamMods:lineup"],
+    "effect": { "def": 3 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "precision_pitcher",
+    "name": "精密機械",
+    "desc": "精密なコントロールで投手陣を安定させる。",
+    "when": ["teamMods:rotation", "teamMods:bullpen"],
+    "effect": { "sp": 2, "rp": 2 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "power_pitcher",
+    "name": "剛腕",
+    "desc": "剛腕が球威を押し上げ投球陣を鼓舞する。",
+    "when": ["teamMods:rotation", "teamMods:bullpen"],
+    "effect": { "sp": 2, "rp": 2 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "iron_arm",
+    "name": "鉄腕",
+    "desc": "タフな肩で終盤の守りを締める。",
+    "when": ["teamMods:rotation", "teamMods:bullpen"],
+    "effect": { "sp": 1, "rp": 1, "extraDef": 0.03 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "strikeout_machine",
+    "name": "奪三振マシン",
+    "desc": "奪三振を量産し相手打線を封じる。",
+    "when": ["teamMods:rotation", "teamMods:bullpen"],
+    "effect": { "sp": 3, "rp": 3 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "pitch_to_contact",
+    "name": "打たせて取る",
+    "desc": "打たせて取る投球で守備効率を高める。",
+    "when": ["teamMods:rotation", "teamMods:bullpen"],
+    "effect": { "def": 2 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "elite_closer",
+    "name": "クローザー◎",
+    "desc": "終盤を託せるクローザーとして守備を強化する。",
+    "when": ["teamMods:bullpen"],
+    "effect": { "extraDef": 0.08 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "clutch_hitter",
+    "name": "クラッチヒッター",
+    "desc": "勝負強さで得点チャンスを逃さない。",
+    "when": ["teamMods:lineup"],
+    "effect": { "extraAtk": 0.07 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "captain",
+    "name": "キャプテン",
+    "desc": "リーダーシップで士気と練習効果を底上げする。",
+    "when": ["teamMods:lineup", "teamMods:clubhouse"],
+    "effect": { "teamTrain": 0.02, "moraleAura": 1 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "mood_maker",
+    "name": "ムードメーカー",
+    "desc": "ムードを明るく保ち好調を呼び込む。",
+    "when": ["teamMods:lineup", "teamMods:clubhouse"],
+    "effect": { "hotDelta": 0.03, "slumpDelta": -0.03 },
+    "stackRule": "sum"
+  },
+  {
+    "id": "iron_man",
+    "name": "鉄人",
+    "desc": "疲労と怪我に強い鉄人。",
+    "when": ["player:fatigue", "player:injury"],
+    "effect": { "fatigueMult": 0.85, "injuryResist": 0.5 },
+    "stackRule": { "fatigueMult": "multiply", "injuryResist": "multiply" }
+  }
+]

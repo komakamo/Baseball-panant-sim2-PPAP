@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>PennantSim Lite Web - Test Runner</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        #results { border-collapse: collapse; width: 100%; }
+        #results th, #results td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        #results th { background-color: #f2f2f2; }
+        .success { background-color: #dff0d8; color: #3c763d; }
+        .failure { background-color: #f2dede; color: #a94442; }
+        pre { background-color: #eee; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>PennantSim Lite Web - Test Runner</h1>
+    <table id="results">
+        <thead>
+            <tr>
+                <th>Test Case</th>
+                <th>Status</th>
+                <th>Error</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <script type="module">
+        // Simple test runner UI
+        const resultsBody = document.querySelector('#results tbody');
+        const originalLog = console.log;
+        const originalError = console.error;
+
+        function runTest(name, testFn) {
+            const row = document.createElement('tr');
+            const nameCell = document.createElement('td');
+            const statusCell = document.createElement('td');
+            const errorCell = document.createElement('td');
+            row.appendChild(nameCell);
+            row.appendChild(statusCell);
+            row.appendChild(errorCell);
+            nameCell.textContent = name;
+
+            try {
+                testFn();
+                row.classList.add('success');
+                statusCell.textContent = '✅ Success';
+            } catch (error) {
+                row.classList.add('failure');
+                statusCell.textContent = '❌ Failure';
+                const errorPre = document.createElement('pre');
+                errorPre.textContent = error.stack || error.message;
+                errorCell.appendChild(errorPre);
+                originalError(`[FAILURE] ${name}`, error);
+            }
+            resultsBody.appendChild(row);
+        }
+
+        // Override console to avoid polluting test runner output
+        console.log = () => {};
+        console.error = () => {};
+
+        // Import and run tests
+        import '../tests/farm.test.js';
+
+        // Restore console functions
+        console.log = originalLog;
+        console.error = originalError;
+
+        console.log('--- Test execution finished ---');
+    </script>
+</body>
+</html>

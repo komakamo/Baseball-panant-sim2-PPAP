@@ -1,0 +1,8 @@
+{
+  "name": "baseball-pennant-sim2",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
