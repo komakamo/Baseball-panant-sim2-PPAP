@@ -5668,7 +5668,14 @@ function showRosterViolationModal(compliance){
     banner.append(list);
   }
 
-  body.append(banner, el('p',{class:'mini'},'対象選手を二軍へ移すか、外国人選手の構成を見直してください。'));
+  const fixBtn=el('button',{class:'btn mini',onclick:()=>{
+    const tid=compliance?.teamId ?? (State.userTeamId ?? 0);
+    autoFixRosterViolations(tid);
+    saveAndRerender();
+    hideRosterViolationModal?.();
+  }},'自動で直す');
+
+  body.append(banner, el('p',{class:'mini'},'対象選手を二軍へ移すか、外国人選手の構成を見直してください。'), fixBtn);
   modal.style.display='flex';
   modal.dataset.teamId=String(compliance?.teamId ?? '');
   refreshIcons();
