@@ -129,9 +129,9 @@ export function validateForeignPlayerLimits(roster, rules = {}) {
   const rule = resolveForeignPlayerRule(rules);
   const players = uniquePlayersFrom(roster || {});
   const activeSet = buildActiveSet(roster || {});
-  const activePlayers = activeSet.size
-    ? players.filter(player => activeSet.has(toId(player?.id ?? player?.pid)))
-    : players;
+  const activePlayers = activeSet.size > 0
+    ? players.filter(p => activeSet.has(toId(p?.id ?? p?.pid)))
+    : [];
   const foreignPlayers = activePlayers.filter(isForeignPlayer);
   const foreignCount = foreignPlayers.length;
   const activeCount = activePlayers.length;
