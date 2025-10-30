@@ -59,54 +59,6 @@ function uniquePlayersFrom(roster) {
   return players;
 }
 
-function resolveForeignPlayerRule(rules = {}) {
-  const rosterRules = (rules && typeof rules === 'object' && rules.roster && typeof rules.roster === 'object')
-    ? rules.roster
-    : {};
-  const foreignConfig = (rosterRules.foreignPlayers && typeof rosterRules.foreignPlayers === 'object')
-    ? rosterRules.foreignPlayers
-    : {};
-
-  const limitCandidates = [
-    foreignConfig.limit,
-    rosterRules.foreignPlayerLimit,
-    rules.foreignPlayerLimit,
-  ];
-  let limit = null;
-  for (const candidate of limitCandidates) {
-    const num = Number(candidate);
-    if (Number.isFinite(num)) {
-      limit = Math.max(0, Math.floor(num));
-      break;
-    }
-  }
-
-  const warningCandidates = [
-    foreignConfig.warningThreshold,
-    rosterRules.foreignPlayerWarning,
-    rules.foreignPlayerWarning,
-  ];
-  let warningThreshold = null;
-  for (const candidate of warningCandidates) {
-    const num = Number(candidate);
-    if (Number.isFinite(num)) {
-      warningThreshold = Math.max(0, Math.floor(num));
-      break;
-    }
-  }
-  if (limit != null && warningThreshold == null) {
-    warningThreshold = Math.max(0, limit - 1);
-  }
-
-  const label = typeof foreignConfig.label === 'string'
-    ? foreignConfig.label
-    : (typeof rosterRules.foreignPlayerLabel === 'string'
-      ? rosterRules.foreignPlayerLabel
-      : FALLBACK_LABEL);
-
-  return { limit, warningThreshold, label };
-}
-
 function buildActiveSet(roster) {
   const rawLists = [
     roster?.activeIds,
@@ -126,7 +78,10 @@ function buildActiveSet(roster) {
 }
 
 export function validateForeignPlayerLimits(roster, rules = {}) {
-  const rule = resolveForeignPlayerRule(rules);
+  const rosterRules = rules.roster || {};
+  const rule = rosterRules.foreignPlayers || {};
+  const label = rule.label || FALLBACK_LABEL;
+
   const players = uniquePlayersFrom(roster || {});
   const activeSet = buildActiveSet(roster || {});
   const activePlayers = activeSet.size > 0
@@ -140,14 +95,14 @@ export function validateForeignPlayerLimits(roster, rules = {}) {
   const warnings = [];
   if (rule.limit != null) {
     if (foreignCount > rule.limit) {
-      errors.push(`${rule.label}超過: ${foreignCount}/${rule.limit}`);
+      errors.push(`${label}超過: ${foreignCount}/${rule.limit}`);
     } else if (rule.warningThreshold != null && foreignCount > rule.warningThreshold) {
-      warnings.push(`${rule.label}が上限目前: ${foreignCount}/${rule.limit}`);
+      warnings.push(`${label}が上限目前: ${foreignCount}/${rule.limit}`);
     }
   }
 
   const result = {
-    label: rule.label,
+    label: label,
     limit: rule.limit,
     warningThreshold: rule.warningThreshold,
     foreignCount,

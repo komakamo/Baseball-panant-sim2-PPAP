@@ -1,3 +1,4 @@
+import { normalizeRules } from '../src/core/rules.js';
 import { validateForeignPlayerLimits } from '../src/systems/roster_rules.js';
 
 const baseRules = {
@@ -96,5 +97,31 @@ describe('roster rules', () => {
     const result = validateForeignPlayerLimits(roster, baseRules);
     expect(result.foreignCount).toBe(0);
     expect(result.errors).toEqual([]);
+  });
+
+  it('validateForeignPlayerLimits should apply default rules when none are provided', () => {
+    const roster = {
+      bats: [
+        { id: 'b1', name: '外国1', isForeign: true },
+        { id: 'b2', name: '外国2', isForeign: true },
+      ],
+      pits: [
+        { id: 'p1', name: '外国3', isForeign: true },
+        { id: 'p2', name: '外国4', isForeign: true },
+        { id: 'p3', name: '外国5', isForeign: true },
+      ],
+      activeIds: ['b1', 'b2', 'p1', 'p2', 'p3']
+    };
+
+    // Normalize an empty rules object to get the default rules
+    const rules = normalizeRules({});
+    const result = validateForeignPlayerLimits(roster, rules);
+
+    // This assertion should now pass
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.foreignCount).toBe(5);
+    // The limit should be the default, but the bug causes it to be null
+    expect(result.limit).toBe(4);
+    expect(result.errors[0]).toBe('外国人枠超過: 5/4');
   });
 });
