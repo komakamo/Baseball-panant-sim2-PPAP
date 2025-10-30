@@ -84,4 +84,17 @@ describe('roster rules', () => {
     expect(result.errors).toEqual([]);
     expect(result.warnings).toEqual([]);
   });
+
+  it('should return 0 foreign players if active roster is empty', () => {
+    const roster = {
+      bats: [
+        { id: 'b1', name: 'Player 1', isForeign: true },
+        { id: 'b2', name: 'Player 2', isForeign: true },
+      ],
+      activeIds: []
+    };
+    const result = validateForeignPlayerLimits(roster, baseRules);
+    expect(result.foreignCount).toBe(0);
+    expect(result.errors).toEqual([]);
+  });
 });
