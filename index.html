@@ -533,6 +533,78 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Jules' Debug Console */
+    #jules-debug-console {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 450px;
+      max-height: 50vh;
+      background: rgba(15, 23, 42, 0.95);
+      color: #e2e8f0;
+      border: 1px solid #475569;
+      border-radius: 12px;
+      z-index: 9999;
+      display: none; /* Initially hidden */
+      flex-direction: column;
+      font-size: 13px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    #jules-debug-console.active {
+      display: flex;
+    }
+    #jules-debug-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(30, 41, 59, 0.8);
+      border-bottom: 1px solid #334155;
+      cursor: move;
+      user-select: none;
+    }
+    #jules-debug-header h4 {
+      margin: 0;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #jules-debug-body {
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .jules-debug-section h5 {
+      margin: 0 0 6px;
+      font-size: 11px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    #jules-debug-log-output, #jules-debug-error-output, #jules-debug-state-output {
+      background: #0f172a;
+      border-radius: 6px;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #334155;
+    }
+    #jules-debug-footer {
+      padding: 8px 12px;
+      border-top: 1px solid #334155;
+      display: flex;
+      justify-content: flex-end;
+    }
   </style>
 </head>
 <body>
@@ -8973,6 +9045,31 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
     <button id="debug-force-event" class="ghost mini">イベント強制発火</button>
   </div>
   <div id="debug-log-viewer" style="height: 120px; overflow-y: auto; background: rgba(30, 41, 59, 0.8); border-radius: 6px; padding: 6px 8px; font-family: monospace; line-height: 1.4;"></div>
+</div>
+
+<!-- Jules' Debug Console -->
+<div id="jules-debug-console">
+  <div id="jules-debug-header">
+    <h4><i data-lucide="bug" class="mini-icon"></i>Jules' Debug Console</h4>
+    <button id="jules-debug-close-btn" class="ghost" style="padding: 2px;"><i data-lucide="x" class="mini-icon"></i></button>
+  </div>
+  <div id="jules-debug-body">
+    <div class="jules-debug-section">
+      <h5><i data-lucide="history" class="mini-icon"></i>Recent Logs</h5>
+      <div id="jules-debug-log-output">No logs yet.</div>
+    </div>
+    <div class="jules-debug-section">
+      <h5><i data-lucide="shield-alert" class="mini-icon"></i>Last Error</h5>
+      <div id="jules-debug-error-output">No errors recorded.</div>
+    </div>
+    <div class="jules-debug-section">
+      <h5><i data-lucide="database" class="mini-icon"></i>Game State Summary</h5>
+      <div id="jules-debug-state-output">State not available.</div>
+    </div>
+  </div>
+  <div id="jules-debug-footer">
+    <button id="jules-debug-copy-btn" class="primary mini"><i data-lucide="copy" class="mini-icon"></i>Copy for AI</button>
+  </div>
 </div>
 
 </body>
