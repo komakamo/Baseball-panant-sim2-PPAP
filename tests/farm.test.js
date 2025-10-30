@@ -16,21 +16,8 @@ function createMockPlayer(overrides = {}) {
     return player;
 }
 
-function runTest(name, testFn) {
-    try {
-        testFn();
-        console.log(`✅ [SUCCESS] ${name}`);
-        return { success: true, name };
-    } catch (error) {
-        console.error(`❌ [FAILURE] ${name}`);
-        console.error(error);
-        return { success: false, name, error: error.message };
-    }
-}
-
-console.log('--- farm.js Tests ---');
-
-runTest('負傷した選手は育成ポイント（farmReveal）を獲得しない', () => {
+describe('applyFarmEffects', () => {
+  it('負傷した選手は育成ポイント（farmReveal）を獲得しない', () => {
     const injuredPlayer = createMockPlayer({
         injury: { type: '捻挫', duration: 10 },
         farmReveal: 10,
@@ -42,44 +29,73 @@ runTest('負傷した選手は育成ポイント（farmReveal）を獲得しな�
 
     applyFarmEffects(state, { teamId: '0' });
 
-    if (injuredPlayer.farmReveal !== 10) {
-        throw new Error(`負傷した選手のfarmRevealが変化しました。期待値: 10, 結果: ${injuredPlayer.farmReveal}`);
-    }
-});
+    expect(injuredPlayer.farmReveal).toBe(10);
+  });
 
-runTest('負傷した選手は疲労回復しない', () => {
-    const injuredPlayer = createMockPlayer({
-        injury: { type: '打撲', duration: 5 },
-        fatigue: 70,
-    });
-    const state = {
-        rosters: { '0': { bats: [], pits: [injuredPlayer] } },
-        squads: { '0': { ichi: [], ni: [injuredPlayer.id] } },
+  it('負傷した選手は疲労回復しない', () => {
+      const injuredPlayer = createMockPlayer({
+          injury: { type: '打撲', duration: 5 },
+          fatigue: 70,
+      });
+      const state = {
+          rosters: { '0': { bats: [], pits: [injuredPlayer] } },
+          squads: { '0': { ichi: [], ni: [injuredPlayer.id] } },
+      };
+
+      applyFarmEffects(state, { teamId: '0' });
+
+      expect(injuredPlayer.fatigue).toBe(70);
+  });
+
+  it('健康な選手は育成ポイントと疲労回復効果を受ける', () => {
+      const healthyPlayer = createMockPlayer({
+          fatigue: 50,
+          farmReveal: 20,
+      });
+      const state = {
+          rosters: { '0': { bats: [healthyPlayer], pits: [] } },
+          squads: { '0': { ichi: [], ni: [healthyPlayer.id] } },
+      };
+
+      applyFarmEffects(state, { teamId: '0' });
+
+      expect(healthyPlayer.farmReveal).toBeGreaterThan(20);
+      expect(healthyPlayer.fatigue).toBeLessThan(50);
+  });
+
+  it('should correctly calculate fatigue recovery', () => {
+    const player = {
+      id: 'p1',
+      name: 'Player 1',
+      fatigue: 50,
+      stam: 60,
+      spd: 60,
+      farmReveal: 50,
     };
 
-    applyFarmEffects(state, { teamId: '0' });
-
-    if (injuredPlayer.fatigue !== 70) {
-        throw new Error(`負傷した選手の疲労が変化しました。期待値: 70, 結果: ${injuredPlayer.fatigue}`);
-    }
-});
-
-runTest('健康な選手は育成ポイントと疲労回復効果を受ける', () => {
-    const healthyPlayer = createMockPlayer({
-        fatigue: 50,
-        farmReveal: 20,
-    });
     const state = {
-        rosters: { '0': { bats: [healthyPlayer], pits: [] } },
-        squads: { '0': { ichi: [], ni: [healthyPlayer.id] } },
+      squads: {
+        t1: {
+          ni: ['p1'],
+        },
+      },
+      rosters: {
+        t1: {
+          bats: [player],
+          pits: [],
+        },
+      },
     };
 
-    applyFarmEffects(state, { teamId: '0' });
+    const options = {
+      teamId: 't1',
+      days: 7,
+      rng: () => 0.5,
+    };
 
-    if (healthyPlayer.farmReveal <= 20) {
-        throw new Error(`健康な選手のfarmRevealが増加しませんでした。開始時: 20, 結果: ${healthyPlayer.farmReveal}`);
-    }
-    if (healthyPlayer.fatigue >= 50) {
-        throw new Error(`健康な選手の疲労が回復しませんでした。開始時: 50, 結果: ${healthyPlayer.fatigue}`);
-    }
+    const result = applyFarmEffects(state, options);
+    const p1Result = result.players.find(p => p.playerId === 'p1');
+
+    expect(p1Result.fatigueAfter).toBe(43);
+  });
 });

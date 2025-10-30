@@ -5,6 +5,10 @@ const SPECIAL_IDS_BY_NAME = new Map();
 export async function loadSpecials() {
     const response = await fetch('../data/specials.json');
     const rawSpecials = await response.json();
+    initializeSpecials(rawSpecials);
+}
+
+export function initializeSpecials(rawSpecials) {
     SPECIALS = rawSpecials.map(entry => ({
         ...entry,
         when: normalizeWhenList(entry.when),

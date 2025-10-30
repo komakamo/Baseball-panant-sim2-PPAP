@@ -54,7 +54,7 @@ function computeFatigueRecovery(player, days, rng) {
   if (!player) return 0;
   const conditioning = clamp(toNumber(player.stam ?? player.spd, 58), 30, 99);
   const reveal = clamp(toNumber(player.farmReveal, 0), 0, REVEAL_CAP);
-  const base = 0.95 * days;
+  const base = Math.round(0.95 * days);
   const conditioningFactor = clamp(0.85 + (conditioning - 60) / 140, 0.6, 1.3);
   const revealFactor = clamp(0.9 + reveal / 250, 0.9, 1.35);
   const noise = 0.85 + rng() * 0.35;
