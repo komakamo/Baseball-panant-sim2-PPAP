@@ -3134,9 +3134,9 @@ function autoAssignSquads(tid) {
     ensureTeamStrategy(tid);
     const strategy = State.teamStrategy[tid];
     const R = State.rosters[tid];
-    
+
     const allPlayers = [...R.bats, ...R.pits].map(p => ({ player: p, value: getPlayerRosterValue(p, strategy) }));
-    
+
     const bats = allPlayers.filter(item => !item.player.velo).sort((a, b) => b.value - a.value);
     const pitsSP = allPlayers.filter(item => item.player.velo && item.player.role === "SP").sort((a, b) => b.value - a.value);
     const pitsRP = allPlayers.filter(item => item.player.velo && item.player.role !== "SP").sort((a, b) => b.value - a.value);
@@ -3152,6 +3152,34 @@ function autoAssignSquads(tid) {
   State.rotation[tid] = { order: pitsSP.slice(0, 5).map(p => p.player.id), idx: 0 };
 
   logHighlight('shuffle', `[${id2name(tid)}] ロースター自動編成を実行しました。(方針: ${strategy.roster})`);
+}
+
+function autoFixRosterViolations(tid){
+  const compliance = getRosterCompliance(tid, { refresh: true });
+  if(!compliance) return;
+  const squads = State.squads?.[tid];
+  if(!squads) return;
+
+  const foreignIds = Array.isArray(compliance.foreignPlayers) ? compliance.foreignPlayers : [];
+  if(!foreignIds.length){
+    evaluateRosterComplianceForTeam(tid, { persist: true });
+    refreshIcons?.();
+    updateAdvanceButtonsState?.();
+    return;
+  }
+
+  const ichi = Array.isArray(squads.ichi) ? squads.ichi.filter(pid => !foreignIds.includes(pid)) : [];
+  const niBase = Array.isArray(squads.ni) ? squads.ni.filter((pid, idx, arr) => arr.indexOf(pid) === idx) : [];
+  const ni = [...niBase];
+  foreignIds.forEach(pid => {
+    if(!ni.includes(pid)) ni.push(pid);
+  });
+
+  State.squads[tid] = { ichi, ni };
+
+  evaluateRosterComplianceForTeam(tid, { persist: true });
+  refreshIcons?.();
+  updateAdvanceButtonsState?.();
 }
 
 // ====== Lineup Selection (v12 Natural) ======
@@ -8612,11 +8640,13 @@ $("#btnGen").onclick=()=>{
   State.curr_day=1;
   State.weekXP={}; State.weekXPLog={};
   State.devLogs=[];
-  State.squadsInit=false; 
+  State.squadsInit=false;
   State.playerGameLogs = {};
-  ensureSquads(); 
-  recomputeAllRatingsAll(); 
-  saveAndRerender(); 
+  ensureSquads();
+  recomputeAllRatingsAll();
+  Object.keys(State.rosters||{}).forEach(tid => autoFixRosterViolations(parseInt(tid, 10)));
+  updateAdvanceButtonsState();
+  saveAndRerender();
 };
 
 $("#btnToday").onclick=()=>{
