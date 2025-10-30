@@ -557,6 +557,7 @@
               <button id="btnToday"><i data-lucide="play"></i>今日を進める</button>
               <button id="btnEnd"><i data-lucide="fast-forward"></i>最後まで</button>
             </div>
+            <div id="advanceWarning" class="mini text-danger"></div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;margin:12px 0;">
             <span class="pill" id="seasonLabel"></span>
@@ -1692,6 +1693,16 @@ function updateAdvanceButtonsState(){
   if(btnToday) btnToday.disabled = disabled;
   const btnEnd = document.querySelector('#btnEnd');
   if(btnEnd) btnEnd.disabled = disabled;
+  const warn = document.querySelector('#advanceWarning');
+  if(warn){
+    if(!disabled){
+      warn.textContent = '';
+    } else {
+      const comp = getRosterCompliance(State.userTeamId ?? 0, { refresh: false }) || {};
+      const { label } = comp;
+      warn.textContent = `進行できません：${label || '登録制限'}が解消されていません。ロースターを確認してください。`;
+    }
+  }
 }
 
 function releasePlayerToFreeAgency(tid, playerId, reason='契約満了'){
