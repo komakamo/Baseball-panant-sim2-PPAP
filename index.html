@@ -536,6 +536,7 @@
   </style>
 </head>
 <body>
+  <div id="startup-error" style="position:fixed;top:0;left:0;right:0;background:#e53e3e;color:white;padding:1em;text-align:center;z-index:9999;font-family:monospace;display:none;font-size:14px;line-height:1.6;"></div>
   <header>
     <div style="display:flex;gap:16px;align-items:center;justify-content:space-between;">
       <h1><i data-lucide="baseball" class="logo-icon"></i>PennantSim Lite Web v12</h1>
@@ -8790,6 +8791,15 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
 
 // ====== Boot ======
 (async function init(){
+  const { runStartupTest } = await import('./tests/startup_test.js');
+  const errors = await runStartupTest();
+  if (errors.length > 0) {
+    const errorDiv = document.getElementById('startup-error');
+    errorDiv.innerHTML = `<strong>Startup Test Failed:</strong><br>${errors.join('<br>')}`;
+    errorDiv.style.display = 'block';
+    return; // Stop further execution
+  }
+
   await loadSpecials();
 
   DebugPanel.init({
