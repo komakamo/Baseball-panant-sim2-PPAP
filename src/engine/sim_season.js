@@ -265,7 +265,7 @@ export function applyAllStarBreakDay(state, context, deps = {}) {
     for (const player of players) {
       if (!player || typeof player !== 'object') continue;
       if (fatigueRecovery) {
-        const before = Number.isFinite(player.fatigue) ? player.fatigue : 20;
+        const before = Number.isFinite(player.fatigue) ? player.fatigue : 0;
         player.fatigue = clampDefault(before - fatigueRecovery, 0, 100);
       }
       if (playerPopularityGain) {
