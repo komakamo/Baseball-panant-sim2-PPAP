@@ -5426,9 +5426,6 @@ function hideFinanceModal() {
     if (modal) modal.style.display = 'none';
 }
 
-const financeCloseBtn = $('#financeModalCloseBtn');
-if (financeCloseBtn) financeCloseBtn.onclick = hideFinanceModal;
-
 function buildFreeAgentRow(tid, player) {
     const overall = Math.round(getOverall(player));
     const expectation = valuePlayerContract(player, { overall: getOverall(player) });
@@ -8767,6 +8764,7 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
           hideGameRecapModal();
       }
   };
+  $('#financeModalCloseBtn').onclick = hideFinanceModal;
   $('#scoutReportCloseBtn').onclick = hideScoutReportModal;
   $('#scoutReportModal').onclick = (e) => {
       if (e.target === $('#scoutReportModal')) {
@@ -8790,6 +8788,8 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
       if (e.key === 'Escape') {
           if ($('#playerDetailModal').style.display === 'flex') hidePlayerDetailModal();
           if ($('#gameRecapModal').style.display === 'flex') hideGameRecapModal();
+          if ($('#financeModal').style.display === 'flex') hideFinanceModal();
+          if ($('#scoutReportModal').style.display === 'flex') hideScoutReportModal();
           if ($('#narrativeLogModal').style.display === 'flex') hideNarrativeLogModal();
           if ($('#rosterViolationModal').style.display === 'flex') hideRosterViolationModal();
       }
