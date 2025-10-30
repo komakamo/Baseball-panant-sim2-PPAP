@@ -77,8 +77,11 @@ function buildActiveSet(roster) {
   return set;
 }
 
+import { normalizeRules } from '../core/rules.js';
+
 export function validateForeignPlayerLimits(roster, rules = {}) {
-  const rosterRules = rules.roster || {};
+  const normalizedRules = normalizeRules(rules);
+  const rosterRules = normalizedRules.roster || {};
   const rule = rosterRules.foreignPlayers || {};
   const label = rule.label || FALLBACK_LABEL;
 
