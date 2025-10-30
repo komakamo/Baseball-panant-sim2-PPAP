@@ -8790,14 +8790,6 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
 // ====== Boot ======
 (async function init(){
   await loadSpecials();
-  // Custom confirm dialog replacement
-  window.confirm = function(message) {
-      // For this environment, we can't show a real modal dialog.
-      // We will proceed as if the user clicked "OK".
-      // In a real application, you would implement a custom modal here.
-      console.log("Confirmation requested: ", message);
-      return true;
-  };
   
   // Modal Listeners
   $('#modalCloseBtn').onclick = hidePlayerDetailModal;
