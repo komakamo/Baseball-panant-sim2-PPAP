@@ -3136,7 +3136,6 @@ function autoAssignSquads(tid) {
   State.rotation[tid] = { order: pitsSP.slice(0, 5).map(p => p.player.id), idx: 0 };
 
   logHighlight('shuffle', `[${id2name(tid)}] ロースター自動編成を実行しました。(方針: ${strategy.roster})`);
-  evaluateRosterComplianceForTeam(tid);
 }
 
 // ====== Lineup Selection (v12 Natural) ======
