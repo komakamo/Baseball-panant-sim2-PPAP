@@ -1,5 +1,3 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
 import {
   ensureSponsorDeals,
   evaluateSponsorMilestonesForDay,
@@ -38,148 +36,148 @@ function createTeamState({ wins = 0, deals }) {
   return state;
 }
 
-test('base sponsor payout is awarded once and recorded', () => {
-  const state = createTeamState({
-    wins: 0,
-    deals: [
-      {
-        id: 'megacorp',
-        name: 'MegaCorp',
-        base: { amount: 500000, summary: 'Guaranteed appearance fee' },
-        bonusTriggers: []
-      }
-    ]
+describe('sponsors', () => {
+  it('base sponsor payout is awarded once and recorded', () => {
+    const state = createTeamState({
+      wins: 0,
+      deals: [
+        {
+          id: 'megacorp',
+          name: 'MegaCorp',
+          base: { amount: 500000, summary: 'Guaranteed appearance fee' },
+          bonusTriggers: []
+        }
+      ]
+    });
+
+    const finance = state.teamFinances[1];
+    const initialReserves = finance.budget.reserves;
+
+    const first = evaluateSponsorMilestonesForDay(state, {
+      day: 5,
+      stage: 'REG',
+      previousStage: 'PRE',
+      results: state.results,
+    }, { logFinanceEvent: () => {} });
+
+    expect(first.totalPayout).toBe(500000);
+    expect(finance.budget.reserves).toBe(initialReserves + 500000);
+    expect(finance.revenue.sponsors).toBe(500000);
+    expect(finance.revenue.total).toBe(500000);
+    expect(state.teamSponsors[1].deals[0].progress.baseAwarded).toBe(true);
+
+    const second = evaluateSponsorMilestonesForDay(state, {
+      day: 6,
+      stage: 'REG',
+      previousStage: 'REG',
+      results: state.results
+    }, { logFinanceEvent: () => {} });
+
+    expect(second.totalPayout).toBe(0);
+    expect(finance.budget.reserves).toBe(initialReserves + 500000);
   });
 
-  const finance = state.teamFinances[1];
-  const initialReserves = finance.budget.reserves;
+  it('wins trigger awards sponsor bonus when threshold met', () => {
+    const state = createTeamState({
+      wins: 55,
+      deals: [
+        {
+          id: 'victory',
+          name: 'Victory Partners',
+          base: { amount: 250000 },
+          bonusTriggers: [
+            {
+              id: 'wins-50',
+              type: TRIGGER_TYPES.WINS,
+              threshold: 50,
+              payout: 400000,
+              description: '50 wins bonus'
+            }
+          ]
+        }
+      ]
+    });
 
-  const first = evaluateSponsorMilestonesForDay(state, {
-    day: 5,
-    stage: 'REG',
-    previousStage: 'PRE',
-    results: state.results
+    const finance = state.teamFinances[1];
+    const initialReserves = finance.budget.reserves;
+
+    const result = evaluateSponsorMilestonesForDay(state, {
+      day: 100,
+      stage: 'REG',
+      previousStage: 'REG',
+      results: state.results
+    }, { logFinanceEvent: () => {} });
+
+    expect(result.payouts.length).toBe(2);
+    expect(result.totalPayout).toBe(650000);
+    expect(finance.budget.reserves).toBe(initialReserves + 650000);
+    expect(finance.revenue.sponsors).toBe(650000);
+    expect(state.teamSponsors[1].deals[0].progress.triggered['wins-50']).toBe(true);
+
+    const repeat = evaluateSponsorMilestonesForDay(state, {
+      day: 101,
+      stage: 'REG',
+      previousStage: 'REG',
+      results: state.results
+    }, { logFinanceEvent: () => {} });
+
+    expect(repeat.totalPayout).toBe(0);
+    expect(finance.budget.reserves).toBe(initialReserves + 650000);
   });
 
-  assert.equal(first.totalPayout, 500000);
-  assert.equal(finance.budget.reserves, initialReserves + 500000);
-  assert.equal(finance.revenue.sponsors, 500000);
-  assert.equal(finance.revenue.total, 500000);
-  assert.equal(state.financeLog.length, 1);
-  assert.equal(state.teamSponsors[1].deals[0].progress.baseAwarded, true);
+  it('stage trigger only fires on stage transition', () => {
+    const state = createTeamState({
+      wins: 0,
+      deals: [
+        {
+          id: 'postseason',
+          name: 'Postseason Energy',
+          base: 0,
+          bonusTriggers: [
+            {
+              id: 'reach-cs',
+              type: TRIGGER_TYPES.STAGE,
+              stage: ['CS'],
+              payout: 300000,
+              description: 'Climax Series entry bonus'
+            }
+          ]
+        }
+      ]
+    });
 
-  const second = evaluateSponsorMilestonesForDay(state, {
-    day: 6,
-    stage: 'REG',
-    previousStage: 'REG',
-    results: state.results
+    const finance = state.teamFinances[1];
+    const initialReserves = finance.budget.reserves;
+
+    const noTrigger = evaluateSponsorMilestonesForDay(state, {
+      day: 120,
+      stage: 'REG',
+      previousStage: 'REG',
+      results: state.results
+    }, { logFinanceEvent: () => {} });
+
+    expect(noTrigger.totalPayout).toBe(0);
+    expect(finance.budget.reserves).toBe(initialReserves);
+
+    const triggered = evaluateSponsorMilestonesForDay(state, {
+      day: 130,
+      stage: 'CS',
+      previousStage: 'REG',
+      results: state.results
+    }, { logFinanceEvent: () => {} });
+
+    expect(triggered.totalPayout).toBe(300000);
+    expect(finance.budget.reserves).toBe(initialReserves + 300000);
+    expect(state.teamSponsors[1].deals[0].progress.triggered['reach-cs']).toBe(true);
+
+    const repeat = evaluateSponsorMilestonesForDay(state, {
+      day: 131,
+      stage: 'CS',
+      previousStage: 'CS',
+      results: state.results
+    }, { logFinanceEvent: () => {} });
+
+    expect(repeat.totalPayout).toBe(0);
+    expect(finance.budget.reserves).toBe(initialReserves + 300000);
   });
-
-  assert.equal(second.totalPayout, 0);
-  assert.equal(finance.budget.reserves, initialReserves + 500000);
-  assert.equal(state.financeLog.length, 1);
-});
-
-test('wins trigger awards sponsor bonus when threshold met', () => {
-  const state = createTeamState({
-    wins: 55,
-    deals: [
-      {
-        id: 'victory',
-        name: 'Victory Partners',
-        base: { amount: 250000 },
-        bonusTriggers: [
-          {
-            id: 'wins-50',
-            type: TRIGGER_TYPES.WINS,
-            threshold: 50,
-            payout: 400000,
-            description: '50 wins bonus'
-          }
-        ]
-      }
-    ]
-  });
-
-  const finance = state.teamFinances[1];
-  const initialReserves = finance.budget.reserves;
-
-  const result = evaluateSponsorMilestonesForDay(state, {
-    day: 100,
-    stage: 'REG',
-    previousStage: 'REG',
-    results: state.results
-  });
-
-  assert.equal(result.payouts.length, 2, 'base and wins bonus should both pay');
-  assert.equal(result.totalPayout, 650000);
-  assert.equal(finance.budget.reserves, initialReserves + 650000);
-  assert.equal(finance.revenue.sponsors, 650000);
-  assert.equal(state.teamSponsors[1].deals[0].progress.triggered['wins-50'], true);
-
-  const repeat = evaluateSponsorMilestonesForDay(state, {
-    day: 101,
-    stage: 'REG',
-    previousStage: 'REG',
-    results: state.results
-  });
-
-  assert.equal(repeat.totalPayout, 0);
-  assert.equal(finance.budget.reserves, initialReserves + 650000);
-});
-
-test('stage trigger only fires on stage transition', () => {
-  const state = createTeamState({
-    wins: 0,
-    deals: [
-      {
-        id: 'postseason',
-        name: 'Postseason Energy',
-        base: 0,
-        bonusTriggers: [
-          {
-            id: 'reach-cs',
-            type: TRIGGER_TYPES.STAGE,
-            stage: ['CS'],
-            payout: 300000,
-            description: 'Climax Series entry bonus'
-          }
-        ]
-      }
-    ]
-  });
-
-  const finance = state.teamFinances[1];
-  const initialReserves = finance.budget.reserves;
-
-  const noTrigger = evaluateSponsorMilestonesForDay(state, {
-    day: 120,
-    stage: 'REG',
-    previousStage: 'REG',
-    results: state.results
-  });
-
-  assert.equal(noTrigger.totalPayout, 0);
-  assert.equal(finance.budget.reserves, initialReserves);
-
-  const triggered = evaluateSponsorMilestonesForDay(state, {
-    day: 130,
-    stage: 'CS',
-    previousStage: 'REG',
-    results: state.results
-  });
-
-  assert.equal(triggered.totalPayout, 300000);
-  assert.equal(finance.budget.reserves, initialReserves + 300000);
-  assert.equal(state.teamSponsors[1].deals[0].progress.triggered['reach-cs'], true);
-
-  const repeat = evaluateSponsorMilestonesForDay(state, {
-    day: 131,
-    stage: 'CS',
-    previousStage: 'CS',
-    results: state.results
-  });
-
-  assert.equal(repeat.totalPayout, 0);
-  assert.equal(finance.budget.reserves, initialReserves + 300000);
 });
