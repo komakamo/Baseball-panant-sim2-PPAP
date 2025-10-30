@@ -124,4 +124,24 @@ describe('roster rules', () => {
     expect(result.limit).toBe(4);
     expect(result.errors[0]).toBe('外国人枠超過: 5/4');
   });
+
+  it('should fail when foreign player limit is exceeded and no rules are given', () => {
+    const roster = {
+      bats: [
+        { id: 'b1', name: '外国1', isForeign: true },
+        { id: 'b2', name: '外国2', isForeign: true },
+      ],
+      pits: [
+        { id: 'p1', name: '外国3', isForeign: true },
+        { id: 'p2', name: '外国4', isForeign: true },
+        { id: 'p3', name: '外国5', isForeign: true },
+      ],
+      activeIds: ['b1', 'b2', 'p1', 'p2', 'p3']
+    };
+
+    const result = validateForeignPlayerLimits(roster, {});
+
+    expect(result.foreignCount).toBe(5);
+    expect(result.errors.length).toBeGreaterThan(0);
+  });
 });
