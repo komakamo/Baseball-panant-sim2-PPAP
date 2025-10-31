@@ -1,4 +1,5 @@
 // src/ui/debug_panel.js
+import { formatUserActions } from '../utils/action_logger.js';
 
 // Helper functions to access the main game state and actions
 // These will be initialized from the main script.
@@ -166,6 +167,13 @@ function updateJulesErrorOutput() {
     }
 }
 
+function updateJulesActionLogOutput() {
+    const output = $('#jules-debug-action-log-output');
+    if (output) {
+        output.textContent = formatUserActions();
+    }
+}
+
 function updateJulesStateOutput() {
     const output = $('#jules-debug-state-output');
     if (output && Game.State) {
@@ -207,6 +215,13 @@ function copyDebugInfoForAI() {
 ${stateOutput}
 \`\`\`
 
+### User Actions
+\`\`\`
+[UserActions]
+${formatUserActions()}
+[/UserActions]
+\`\`\`
+
 ### Last Recorded Error
 \`\`\`
 ${errorOutput}
@@ -236,6 +251,7 @@ function setupJulesDebugConsole() {
 
     // Capture global errors
     window.addEventListener('error', (event) => {
+        logUserAction('ErrorOccurred', event.message);
         julesLastError = {
             message: event.message,
             stack: event.error?.stack || 'No stack trace available.',
@@ -291,6 +307,7 @@ function setupJulesDebugConsole() {
                 updateJulesStateOutput();
                 updateJulesLogOutput();
                 updateJulesErrorOutput();
+                updateJulesActionLogOutput();
             }
         }
     });

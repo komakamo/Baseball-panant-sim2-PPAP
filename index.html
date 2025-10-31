@@ -874,6 +874,7 @@
   }
 </script>
 <script type="module">
+import { logUserAction } from './src/utils/action_logger.js';
 import LeagueRules from './src/core/rules.js';
 import ScheduleBuilder, { normalizeScheduleEntries } from './src/core/schedule.js';
 import { valuePlayerContract, normalizeContractTerms, negotiateContractOffer as evaluateNegotiation } from './src/systems/contracts.js';
@@ -8693,6 +8694,7 @@ function advanceSeason() {
 }
 
 $("#btnGen").onclick=()=>{
+  logUserAction('ButtonClick', 'StartNewSeason');
   const hasSchedule = Array.isArray(State.schedule) && State.schedule.length > 0;
   const hasCurrDay = typeof State.curr_day === 'number';
   if (hasSchedule && hasCurrDay && State.curr_day <= maxDay()) {
@@ -8742,6 +8744,7 @@ $("#btnGen").onclick=()=>{
 };
 
 $("#btnToday").onclick=()=>{
+  logUserAction('ButtonClick', 'AdvanceDay');
   const complianceMap = refreshRosterComplianceAll();
   const tid = State.userTeamId ?? 0;
   const compliance = complianceMap[tid] || State.rosterCompliance?.[tid] || null;
@@ -8821,6 +8824,7 @@ $("#btnToday").onclick=()=>{
   saveAndRerender();
 };
 $("#btnEnd").onclick=()=>{
+  logUserAction('ButtonClick', 'AdvanceToEnd');
   if(!State.schedule.length) return;
   if(hasBlockingRosterViolations()){
     const tid=State.userTeamId ?? 0;
@@ -8840,17 +8844,18 @@ $("#btnEnd").onclick=()=>{
     if(hasBlockingRosterViolations()) break;
   }
 };
-$("#btnReset").onclick=()=>{ if(confirm("本当に全データをリセットしますか？この操作は元に戻せません。")){ localStorage.removeItem(SAVE_KEY); window.location.reload(); } };
+$("#btnReset").onclick=()=>{ logUserAction('ButtonClick', 'ResetAllData'); if(confirm("本当に全データをリセットしますか？この操作は元に戻せません。")){ localStorage.removeItem(SAVE_KEY); window.location.reload(); } };
 
 // ====== Save/Load ======
 function save(){ localStorage.setItem(SAVE_KEY, JSON.stringify(State)); }
 function saveAndRerender(){ refreshRosterComplianceAll(); save(); renderAll(); }
 
 // ====== Tabs/Listeners ======
-$$('.tab').forEach(tab=> tab.onclick=()=>{ $$('.tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); renderManagementView(); });
+$$('.tab').forEach(tab=> tab.onclick=()=>{ logUserAction('SceneChanged', `TeamManagementScene: ${tab.dataset.tab}`); $$('.tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active'); renderManagementView(); });
 $$('#dashboard-tabs .dashboard-tab').forEach(btn=>{
   btn.addEventListener('click',()=>{
     const tab=btn.dataset.tab;
+    logUserAction('SceneChanged', `DashboardScene: ${tab}`);
     if(!tab) return;
     if(!State.ui) State.ui={};
     const changed=State.ui.dashboardTab!==tab;
@@ -9065,6 +9070,10 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
     <div class="jules-debug-section">
       <h5><i data-lucide="database" class="mini-icon"></i>Game State Summary</h5>
       <div id="jules-debug-state-output">State not available.</div>
+    </div>
+    <div class="jules-debug-section">
+      <h5><i data-lucide-icon="list" class="mini-icon"></i>User Actions</h5>
+      <div id="jules-debug-action-log-output">No actions logged yet.</div>
     </div>
   </div>
   <div id="jules-debug-footer">
