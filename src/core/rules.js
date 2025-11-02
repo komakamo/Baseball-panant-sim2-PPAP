@@ -44,11 +44,35 @@ const DEFAULT_RULES = Object.freeze({
       warningThreshold: 3,
       label: '外国人枠'
     }
+  },
+  game: {
+    innings: 9,
+    extraInnings: 12,
+    allowTie: true,
+    ghostRunner: false,
+    ghostRunnerInning: 10,
+    dh: 'auto',
+    winningPercentage: 'npb'
   }
 });
 
 function deepClone(obj) {
-  return JSON.parse(JSON.stringify(obj));
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (obj instanceof Date) {
+    return new Date(obj.getTime());
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(deepClone);
+  }
+  const cloned = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      cloned[key] = deepClone(obj[key]);
+    }
+  }
+  return cloned;
 }
 
 export function createDefaultRules() {
@@ -60,6 +84,7 @@ export function normalizeRules(input) {
   const source = (input && typeof input === 'object') ? input : {};
   const postseason = source.postseason || {};
   const rosterSource = (source.roster && typeof source.roster === 'object') ? source.roster : {};
+  const gameSource = (source.game && typeof source.game === 'object') ? source.game : {};
 
   const normalized = {
     gamesPerTeam: typeof source.gamesPerTeam === 'number' ? source.gamesPerTeam : base.gamesPerTeam,
@@ -69,7 +94,8 @@ export function normalizeRules(input) {
       cs: { ...base.postseason.cs, ...(postseason.cs || {}) },
       js: { ...base.postseason.js, ...(postseason.js || {}) }
     },
-    roster: { ...base.roster, ...rosterSource }
+    roster: { ...base.roster, ...rosterSource },
+    game: { ...base.game, ...gameSource }
   };
 
   const baseForeign = base.roster?.foreignPlayers || {};
