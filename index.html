@@ -6845,6 +6845,28 @@ function squadSelect(tid, pid, cur){
 
 function renderRosterView(tid){
   ensureSquads(); const R=State.rosters[tid]; const ichiSet=new Set(State.squads[tid].ichi); const niSet=new Set(State.squads[tid].ni); const frag=document.createDocumentFragment();
+  const allowed = canControlTeam(tid);
+
+  const controls = el("div", {class:"controls", style:"margin-bottom: 16px; justify-content: flex-start;"});
+  const autoAssignBtn = el("button", {id:"btnRosterAutoAssign"}, el("i",{"data-lucide":"shuffle"}), "1軍/2軍を自動編成");
+  autoAssignBtn.onclick = () => {
+    if(!allowed){
+      showToast('自チーム以外は操作できません', { type: 'error' });
+      return;
+    }
+    autoAssignSquads(tid);
+    recomputeAllRatingsAll();
+    renderManagementView();
+    save();
+    showToast(`${id2name(tid)}の1軍/2軍を自動編成しました。`, { type: 'info' });
+  };
+  if(!allowed){
+      autoAssignBtn.disabled = true;
+      autoAssignBtn.title = '自チーム以外は操作できません（コミッショナーモードで可）';
+  }
+  controls.append(autoAssignBtn);
+  frag.append(controls);
+
   const compliance=getRosterCompliance(tid) || null;
   if(compliance && ((Array.isArray(compliance.errors) && compliance.errors.length) || (Array.isArray(compliance.warnings) && compliance.warnings.length))){
     const hasError=Array.isArray(compliance.errors) && compliance.errors.length>0;
@@ -6866,7 +6888,6 @@ function renderRosterView(tid){
     }
     frag.append(banner);
   }
-  const allowed = canControlTeam(tid);
   const hBat=el("h3",{class:"mini",style:"padding:8px;font-weight:bold;",html:"<br>野手"});
   const tBat=el("table",{},el("thead",{},el("tr",{},...['選手','年','守','投','ミ','選','パ','走','守','ポ','所属', '<i data-lucide="trending-up" class="mini-icon"></i>', '<i data-lucide="battery-warning" class="mini-icon"></i>', '<i data-lucide="smile" class="mini-icon"></i>','特能','特訓'].map(h=>el('th',{html:h})))),el("tbody"));
   
