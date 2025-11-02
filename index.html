@@ -1399,6 +1399,77 @@ function normalizeRosterPlayers(state){
   if(Array.isArray(state.freeAgents)) state.freeAgents.forEach(applyPersona);
 }
 
+function normalizeSquadAssignments(state){
+  if(!state || typeof state !== 'object') return;
+  if(!state.squads || typeof state.squads !== 'object'){
+    state.squads = {};
+    state.squadsInit = false;
+    return;
+  }
+  const rosters = state.rosters || {};
+  const teams = Array.isArray(state.teams) ? state.teams : [];
+  const normalizedSquads = {};
+  let shouldResetInit = false;
+
+  const resolveRosterIds = (tid)=>{
+    const roster = rosters[tid] || {};
+    const bats = Array.isArray(roster.bats) ? roster.bats : [];
+    const pits = Array.isArray(roster.pits) ? roster.pits : [];
+    const ids = new Set();
+    [...bats, ...pits].forEach(player => {
+      if(!player || typeof player !== 'object') return;
+      const raw = Number.isFinite(player.id) ? player.id : Number(player.id ?? player.pid);
+      if(Number.isFinite(raw)) ids.add(raw);
+    });
+    return ids;
+  };
+
+  const normalizeList = (list, validIds)=>{
+    const seen = new Set();
+    const result = [];
+    (Array.isArray(list) ? list : []).forEach(entry => {
+      if(entry == null) return;
+      let pid;
+      if(typeof entry === 'object'){
+        const raw = Number(entry.id ?? entry.pid);
+        if(Number.isFinite(raw)) pid = raw;
+      } else {
+        const raw = Number(entry);
+        if(Number.isFinite(raw)) pid = raw;
+      }
+      if(!Number.isFinite(pid)) return;
+      if(!validIds.has(pid)) return;
+      if(seen.has(pid)) return;
+      seen.add(pid);
+      result.push(pid);
+    });
+    return result;
+  };
+
+  const teamIds = new Set();
+  teams.forEach(team => { if(team && Number.isFinite(team.team_id)) teamIds.add(team.team_id); });
+  Object.keys(state.squads).forEach(key => {
+    const parsed = Number(key);
+    if(Number.isFinite(parsed)) teamIds.add(parsed);
+  });
+
+  teamIds.forEach(tid => {
+    const source = state.squads[tid] || state.squads[String(tid)] || {};
+    const originalIchi = Array.isArray(source.ichi) ? source.ichi : [];
+    const originalNi = Array.isArray(source.ni) ? source.ni : [];
+    const validIds = resolveRosterIds(tid);
+    const ichi = normalizeList(originalIchi, validIds);
+    const ni = normalizeList(originalNi, validIds);
+    if((originalIchi.length > 0 && ichi.length === 0) || (originalNi.length > 0 && ni.length === 0)){
+      shouldResetInit = true;
+    }
+    normalizedSquads[tid] = { ichi, ni };
+  });
+
+  state.squads = normalizedSquads;
+  state.squadsInit = shouldResetInit ? false : Boolean(state.squadsInit);
+}
+
 function normalizeNarrativeState(state){
   if(!state) return;
   if(!state.narrativeSettings || typeof state.narrativeSettings !== 'object'){
@@ -3720,11 +3791,12 @@ function doSpecialTraining(tid,pid){ ensureTeamMeta(); const cost=5;
 }
 
 // ====== State ======
-const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ try{ const obj=JSON.parse(saved); obj.version=15; obj.ruleId = obj.ruleId || 'npb-2025'; obj.highlights = obj.highlights || []; obj.playoffs = normalizePlayoffState(obj.playoffs); obj.schedule = normalizeScheduleEntries(obj.schedule||[]); obj.gameRecaps = obj.gameRecaps || {}; obj.ui = obj.ui || {}; obj.ui.dashboardTab = obj.ui.dashboardTab || 'season'; obj.cachedMetrics = obj.cachedMetrics || {}; obj.historicalStats = obj.historicalStats || {}; obj.rosterCompliance = obj.rosterCompliance || {}; obj.squadMoveLog = (obj.squadMoveLog && typeof obj.squadMoveLog === 'object') ? obj.squadMoveLog : {}; obj.userTeamId = Number.isFinite(obj.userTeamId) ? obj.userTeamId : parseInt(obj.userTeamId, 10) || 0; normalizeTeamFinances(obj); normalizeRosterPlayers(obj); normalizeNarrativeState(obj); normalizeLeagueState(obj); normalizeSeasonInfo(obj); if(Array.isArray(obj.teams)){ obj.teams.forEach(team=>{ calculateDraftTeamNeeds(obj, team.team_id); }); } return obj; }catch(e){} }
+const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ try{ const obj=JSON.parse(saved); obj.version=15; obj.ruleId = obj.ruleId || 'npb-2025'; obj.highlights = obj.highlights || []; obj.playoffs = normalizePlayoffState(obj.playoffs); obj.schedule = normalizeScheduleEntries(obj.schedule||[]); obj.gameRecaps = obj.gameRecaps || {}; obj.ui = obj.ui || {}; obj.ui.dashboardTab = obj.ui.dashboardTab || 'season'; obj.cachedMetrics = obj.cachedMetrics || {}; obj.historicalStats = obj.historicalStats || {}; obj.rosterCompliance = obj.rosterCompliance || {}; obj.squadMoveLog = (obj.squadMoveLog && typeof obj.squadMoveLog === 'object') ? obj.squadMoveLog : {}; obj.userTeamId = Number.isFinite(obj.userTeamId) ? obj.userTeamId : parseInt(obj.userTeamId, 10) || 0; normalizeTeamFinances(obj); normalizeRosterPlayers(obj); normalizeSquadAssignments(obj); normalizeNarrativeState(obj); normalizeLeagueState(obj); normalizeSeasonInfo(obj); if(Array.isArray(obj.teams)){ obj.teams.forEach(team=>{ calculateDraftTeamNeeds(obj, team.team_id); }); } return obj; }catch(e){} }
   const teams=baseTeams.map(t=>({...t})); const rosters={}; teams.forEach(t=>{ rosters[t.team_id]=mkInitialRoster(t.team_id); });
   const baseState = { version:15, ruleId: 'npb-2025', teams, rosters, schedule:[], results:[], curr_day:1, seed:2025, home_adv:0.05, trainingPlans:{}, devLogs:[], weekXP:{}, weekXPLog:{}, squads:{}, squadsInit:false, rotation:{}, teamMeta:{}, teamStrategy:{}, userTeamId:0, commissioner:false, playerStats:{}, playerGameLogs:{}, historicalStats:{}, season:1, highlights: [], playoffs: defaultPlayoffState(), gameRecaps:{}, teamFinances:{}, freeAgents:[], narrativeSettings:{ frequency:'standard', theme:'balanced' }, teamNarratives:{}, narrativeLog:[], ui:{ dashboardTab:'season' }, cachedMetrics:{}, league: defaultLeagueState(), seasonInfo: defaultSeasonInfo(), rosterCompliance:{}, squadMoveLog:{} };
   normalizeTeamFinances(baseState);
   normalizeRosterPlayers(baseState);
+  normalizeSquadAssignments(baseState);
   normalizeNarrativeState(baseState);
   normalizeLeagueState(baseState);
   normalizeSeasonInfo(baseState);
