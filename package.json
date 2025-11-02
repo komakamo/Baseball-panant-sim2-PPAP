@@ -11,6 +11,7 @@
     "jest": "^30.2.0"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.28.5"
+    "@babel/preset-env": "^7.28.5",
+    "jest-environment-jsdom": "^30.2.0"
   }
 }

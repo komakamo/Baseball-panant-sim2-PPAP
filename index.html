@@ -410,7 +410,6 @@
         .stats-table-wrapper table .col-secondary{display:none;}
         .stats-table-wrapper table th.col-secondary{display:none;}
     }
-    }
 
     .playoffs-wrapper { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
     .playoff-stage { border: 2px solid var(--card-border); border-radius: 12px; background: rgba(255,255,255,0.9); box-shadow: inset 0 2px 0 0 rgba(148, 163, 184, 0.2); }
@@ -613,6 +612,7 @@
     <div style="display:flex;gap:16px;align-items:center;justify-content:space-between;">
       <h1><i data-lucide="baseball" class="logo-icon"></i>PennantSim Lite Web v12</h1>
       <div style="display:flex;gap:8px;align-items:center;">
+        <span id="ruleSetDisplay" class="pill" style="background-color: var(--primary); color: #fff; border-color: var(--primary-hover);">NPB (2025)</span>
         <span class="pill">育成強化 / 士気・疲労・施設・特訓</span>
         <span class="mini" style="color:#64748b;">保存は自動 / ローカル</span>
       </div>
@@ -661,6 +661,7 @@
               <option value="drama">ドラマティック</option>
               <option value="rivalry">ライバル重視</option>
             </select></label>
+            <label style="display:flex;justify-content:space-between;align-items:center;">ルールセット<select id="ruleSet" style="width:160px;"></select></label>
             <button id="btnReset" style="margin-top:8px; background: var(--bad); color: #fff; border-color: #c53030;"><i data-lucide="rotate-cw"></i>全データ初期化</button>
           </div>
         </div>
@@ -876,6 +877,7 @@
 <script type="module">
 import { logUserAction } from './src/utils/action_logger.js';
 import LeagueRules from './src/core/rules.js';
+import { getAllRulesets, getRulesetById } from './src/rulesets.js';
 import ScheduleBuilder, { normalizeScheduleEntries } from './src/core/schedule.js';
 import { valuePlayerContract, normalizeContractTerms, negotiateContractOffer as evaluateNegotiation } from './src/systems/contracts.js';
 import { determineFreeAgencyEligibility, rankFreeAgent, ensureFreeAgencyState, processFreeAgentSigning } from './src/systems/free_agency.js';
@@ -952,7 +954,7 @@ import { ensureTeamFans as ensureTeamFansState } from './src/systems/fans.js';
 import { ensureSponsorDeals as ensureSponsorDealsState } from './src/systems/sponsors.js';
 // ====== Helpers & State ======
 const $=(s)=>document.querySelector(s); const $$=(s)=>[...document.querySelectorAll(s)];
-const refreshIcons=()=>{ window?.lucide?.createIcons?.(); };
+const refreshIcons = () => { if (window.lucide) { window.lucide.createIcons(); } };
 function resolveTarget(target, fallback){
   if(target instanceof HTMLElement) return target;
   if(typeof target==='string') return document.querySelector(target);
@@ -1490,7 +1492,10 @@ function normalizeLeagueState(state){
   if(!state.league || typeof state.league !== 'object'){
     state.league = defaultLeagueState();
   }
-  state.league.rules = LeagueRules.normalizeRules(state.league.rules);
+  const selectedRuleset = getRulesetById(state.ruleId);
+  const gameRules = selectedRuleset ? { ...selectedRuleset } : {};
+  state.league.rules = LeagueRules.normalizeRules({ ...state.league.rules, game: gameRules });
+  state.ruleId = selectedRuleset.id;
   return state.league;
 }
 
@@ -2083,7 +2088,7 @@ function simulateGameSimple(pair,rngSeed){
   return simulateGamePoissonLegacy(pair,rngSeed);
 }
 
-function simulateGameDetailed(pair, rngSeed, options={}){
+function simulateGameDetailed(pair, rngSeed, rules, options={}){
   const day = options.day ?? State.curr_day ?? 1;
   const rng = mulberry32(rngSeed>>>0);
   const clampProb = (value, min, max)=>Math.max(min, Math.min(max, value));
@@ -2562,8 +2567,11 @@ function simulateGameDetailed(pair, rngSeed, options={}){
     }
   };
 
-  const playHalf=(battingTeam, defTeam, inning, half)=>{
+  const playHalf=(battingTeam, defTeam, inning, half, halfOptions={})=>{
     const halfState={ outs:0, bases:[null,null,null], walkoff:false };
+    if (halfOptions.ghostRunner) {
+      halfState.bases[1] = createRunner(battingTeam, { id: 'ghost', name: 'Ghost Runner', spd: 80 });
+    }
     const before=cloneScore(scoreboard);
     const indices=[];
     while(halfState.outs<3 && !halfState.walkoff){
@@ -2578,38 +2586,52 @@ function simulateGameDetailed(pair, rngSeed, options={}){
   };
 
   let inning=1;
-  const maxInnings=12;
+  const gameRules = {
+    innings: rules.innings || 9,
+    extraInnings: rules.extraInnings === Infinity ? 100 : (rules.extraInnings || 3),
+    allowTie: rules.allowTie !== false,
+    ghostRunner: rules.ghostRunner === true,
+    ghostRunnerInning: rules.ghostRunnerInning || 10,
+  };
+  const maxInningsTotal = gameRules.innings + gameRules.extraInnings;
   let finished=false;
-  while(!finished && inning<=maxInnings){
-    const top=playHalf(away, home, inning, 'top');
+
+  while(!finished && inning <= maxInningsTotal){
+    const isGhostRunnerInning = gameRules.ghostRunner && inning >= gameRules.ghostRunnerInning;
+    const top=playHalf(away, home, inning, 'top', { ghostRunner: isGhostRunnerInning });
     const log={ inning, top:{ runs:top.runs, events:top.events, scoreAfter:top.scoreAfter } };
     if(top.walkoff){ innings.push(log); finished=true; break; }
-    const bottom=playHalf(home, away, inning, 'bottom');
+    const bottom=playHalf(home, away, inning, 'bottom', { ghostRunner: isGhostRunnerInning });
     log.bottom={ runs:bottom.runs, events:bottom.events, scoreAfter:bottom.scoreAfter, walkoff:bottom.walkoff };
     innings.push(log);
     if(bottom.walkoff){ finished=true; break; }
-    if(inning>=9 && scoreboard.home!==scoreboard.away){ finished=true; break; }
+    if(inning >= gameRules.innings && scoreboard.home!==scoreboard.away){ finished=true; break; }
+    if (inning === maxInningsTotal && scoreboard.home === scoreboard.away) { finished = true; break; }
     inning++;
   }
 
-  if(scoreboard.home===scoreboard.away){
+  if(scoreboard.home===scoreboard.away && !gameRules.allowTie){
     const beforeTie=cloneScore(scoreboard);
-    scoreboard.home+=1;
+    const bias = rng() < 0.5 ? 'home' : 'away';
+    if(bias === 'home') scoreboard.home+=1; else scoreboard.away+=1;
     const afterTie=cloneScore(scoreboard);
-    registerKeyMoment('延長タイブレークでホームがサヨナラ勝ち', inning, 'bottom', 'home', beforeTie, afterTie, null);
+    registerKeyMoment('延長タイブレークでサヨナラ勝ち', inning, 'bottom', bias, beforeTie, afterTie, null);
     if(innings.length){
       const last=innings[innings.length-1];
-      if(last.bottom){
-        const prevScore=last.bottom.scoreAfter || beforeTie;
-        const delta=afterTie.home - (prevScore.home??beforeTie.home);
-        last.bottom.runs = (last.bottom.runs||0) + delta;
-        last.bottom.scoreAfter = afterTie;
-        last.bottom.walkoff = true;
+      const targetHalf = bias === 'home' ? 'bottom' : 'top';
+      if(last[targetHalf]){
+        const prevScore=last[targetHalf].scoreAfter || beforeTie;
+        const delta= (bias==='home' ? afterTie.home - (prevScore.home??beforeTie.home) : afterTie.away - (prevScore.away??beforeTie.away));
+        last[targetHalf].runs = (last[targetHalf].runs||0) + delta;
+        last[targetHalf].scoreAfter = afterTie;
+        last[targetHalf].walkoff = true;
       } else {
-        last.bottom={ runs:afterTie.home-beforeTie.home, events:[], scoreAfter:afterTie, walkoff:true };
+        last[targetHalf]={ runs:1, events:[], scoreAfter:afterTie, walkoff:true };
       }
     } else {
-      innings.push({ inning, top:{ runs:0, events:[], scoreAfter:beforeTie }, bottom:{ runs:afterTie.home-beforeTie.home, events:[], scoreAfter:afterTie, walkoff:true } });
+      const homeRuns = bias === 'home' ? 1 : 0;
+      const awayRuns = bias === 'away' ? 1 : 0;
+      innings.push({ inning, top:{ runs:awayRuns, events:[], scoreAfter:afterTie }, bottom:{ runs:homeRuns, events:[], scoreAfter:afterTie, walkoff:true } });
     }
   }
 
@@ -2680,11 +2702,37 @@ function simulateGameDetailed(pair, rngSeed, options={}){
   };
 }
 
-function computeStandings(teams,results){
-  const rec=new Map(); for(const t of teams) rec.set(t.team_id,{team:t.team,league:t.league,W:0,L:0});
-  for(const r of results){ if(r.home_runs>r.away_runs){rec.get(r.home_id).W++;rec.get(r.away_id).L++;} else {rec.get(r.away_id).W++;rec.get(r.home_id).L++;} }
-  const rows=[...rec.entries()].map(([tid,v])=>{const g=v.W+v.L; const pct=g>0?v.W/g:0; return {team_id:tid,team:v.team,league:v.league,W:v.W,L:v.L,Pct:Math.round(pct*1000)/1000}}).sort((a,b)=>b.Pct-a.Pct||b.W-a.W);
-  if(rows.length>0){const leadW=rows[0].W,leadL=rows[0].L; for(const r of rows) r.GB=((leadW-r.W)+(r.L-leadL))/2; }
+function computeStandings(teams, results, rules = {}){
+  const gameRules = rules.game || {};
+  const rec = new Map();
+  for(const t of teams) rec.set(t.team_id, { team:t.team, league:t.league, W:0, L:0, T:0 });
+  for(const r of results){
+    if(r.home_runs > r.away_runs){
+      rec.get(r.home_id).W++;
+      rec.get(r.away_id).L++;
+    } else if (r.away_runs > r.home_runs) {
+      rec.get(r.away_id).W++;
+      rec.get(r.home_id).L++;
+    } else {
+      rec.get(r.home_id).T++;
+      rec.get(r.away_id).T++;
+    }
+  }
+  const rows = [...rec.entries()].map(([tid,v])=>{
+    let g, pct;
+    if (gameRules.winningPercentage === 'npb') {
+      g = v.W + v.L;
+      pct = g > 0 ? v.W / g : 0;
+    } else {
+      g = v.W + v.L + v.T;
+      pct = g > 0 ? (v.W + v.T / 2) / g : 0;
+    }
+    return {team_id:tid, team:v.team, league:v.league, W:v.W, L:v.L, T:v.T, Pct:Math.round(pct*1000)/1000};
+  }).sort((a,b) => b.Pct - a.Pct || b.W - a.W);
+  if(rows.length > 0){
+    const leadW = rows[0].W, leadL = rows[0].L;
+    for(const r of rows) r.GB = ((leadW - r.W) + (r.L - leadL)) / 2;
+  }
   return rows;
 }
 
@@ -2738,7 +2786,7 @@ function normalizePlayoffState(playoffs){
 function ensurePlayoffState(){ if(!State.playoffs) State.playoffs=defaultPlayoffState(); return State.playoffs; }
 function startPlayoffs(){
   ensurePlayoffState();
-  const standings=computeStandings(State.teams, State.results||[]);
+  const standings=computeStandings(State.teams, State.results||[], State.league.rules);
   if(!standings.length) return State.playoffs;
   const byLeague=new Map();
   standings.forEach(row=>{
@@ -2960,7 +3008,8 @@ function playPlayoffGame(seriesId){
   const awayTeam = (gameIndex % 2 === 0) ? awaySecond : homeFirst;
   const seedBase=State.seed||2025;
   const seed=seedBase + day*131 + gameIndex*17 + series.id.length*11;
-  const res=simulateGameDetailed({home_id:homeTeam.team_id, away_id:awayTeam.team_id}, seed);
+  const playoffRules = getRulesetById('mlb-post');
+  const res=simulateGameDetailed({home_id:homeTeam.team_id, away_id:awayTeam.team_id}, seed, playoffRules);
   res.day=day;
   recordPlayoffGame(series, res);
   allocateGameStats(res);
@@ -3671,9 +3720,9 @@ function doSpecialTraining(tid,pid){ ensureTeamMeta(); const cost=5;
 }
 
 // ====== State ======
-const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ try{ const obj=JSON.parse(saved); obj.version=15; obj.highlights = obj.highlights || []; obj.playoffs = normalizePlayoffState(obj.playoffs); obj.schedule = normalizeScheduleEntries(obj.schedule||[]); obj.gameRecaps = obj.gameRecaps || {}; obj.ui = obj.ui || {}; obj.ui.dashboardTab = obj.ui.dashboardTab || 'season'; obj.cachedMetrics = obj.cachedMetrics || {}; obj.historicalStats = obj.historicalStats || {}; obj.rosterCompliance = obj.rosterCompliance || {}; obj.squadMoveLog = (obj.squadMoveLog && typeof obj.squadMoveLog === 'object') ? obj.squadMoveLog : {}; normalizeTeamFinances(obj); normalizeRosterPlayers(obj); normalizeNarrativeState(obj); normalizeLeagueState(obj); normalizeSeasonInfo(obj); if(Array.isArray(obj.teams)){ obj.teams.forEach(team=>{ calculateDraftTeamNeeds(obj, team.team_id); }); } return obj; }catch(e){} }
+const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ try{ const obj=JSON.parse(saved); obj.version=15; obj.ruleId = obj.ruleId || 'npb-2025'; obj.highlights = obj.highlights || []; obj.playoffs = normalizePlayoffState(obj.playoffs); obj.schedule = normalizeScheduleEntries(obj.schedule||[]); obj.gameRecaps = obj.gameRecaps || {}; obj.ui = obj.ui || {}; obj.ui.dashboardTab = obj.ui.dashboardTab || 'season'; obj.cachedMetrics = obj.cachedMetrics || {}; obj.historicalStats = obj.historicalStats || {}; obj.rosterCompliance = obj.rosterCompliance || {}; obj.squadMoveLog = (obj.squadMoveLog && typeof obj.squadMoveLog === 'object') ? obj.squadMoveLog : {}; normalizeTeamFinances(obj); normalizeRosterPlayers(obj); normalizeNarrativeState(obj); normalizeLeagueState(obj); normalizeSeasonInfo(obj); if(Array.isArray(obj.teams)){ obj.teams.forEach(team=>{ calculateDraftTeamNeeds(obj, team.team_id); }); } return obj; }catch(e){} }
   const teams=baseTeams.map(t=>({...t})); const rosters={}; teams.forEach(t=>{ rosters[t.team_id]=mkInitialRoster(t.team_id); });
-  const baseState = { version:15, teams, rosters, schedule:[], results:[], curr_day:1, seed:2025, home_adv:0.05, trainingPlans:{}, devLogs:[], weekXP:{}, weekXPLog:{}, squads:{}, squadsInit:false, rotation:{}, teamMeta:{}, teamStrategy:{}, userTeamId:0, commissioner:false, playerStats:{}, playerGameLogs:{}, historicalStats:{}, season:1, highlights: [], playoffs: defaultPlayoffState(), gameRecaps:{}, teamFinances:{}, freeAgents:[], narrativeSettings:{ frequency:'standard', theme:'balanced' }, teamNarratives:{}, narrativeLog:[], ui:{ dashboardTab:'season' }, cachedMetrics:{}, league: defaultLeagueState(), seasonInfo: defaultSeasonInfo(), rosterCompliance:{}, squadMoveLog:{} };
+  const baseState = { version:15, ruleId: 'npb-2025', teams, rosters, schedule:[], results:[], curr_day:1, seed:2025, home_adv:0.05, trainingPlans:{}, devLogs:[], weekXP:{}, weekXPLog:{}, squads:{}, squadsInit:false, rotation:{}, teamMeta:{}, teamStrategy:{}, userTeamId:0, commissioner:false, playerStats:{}, playerGameLogs:{}, historicalStats:{}, season:1, highlights: [], playoffs: defaultPlayoffState(), gameRecaps:{}, teamFinances:{}, freeAgents:[], narrativeSettings:{ frequency:'standard', theme:'balanced' }, teamNarratives:{}, narrativeLog:[], ui:{ dashboardTab:'season' }, cachedMetrics:{}, league: defaultLeagueState(), seasonInfo: defaultSeasonInfo(), rosterCompliance:{}, squadMoveLog:{} };
   normalizeTeamFinances(baseState);
   normalizeRosterPlayers(baseState);
   normalizeNarrativeState(baseState);
@@ -3682,6 +3731,9 @@ const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ 
   if(Array.isArray(baseState.teams)){ baseState.teams.forEach(team=>{ calculateDraftTeamNeeds(baseState, team.team_id); }); }
   return baseState;
 })();
+
+window.State = State;
+window.normalizeLeagueState = normalizeLeagueState;
 
 ensureTeamNeedsAll();
 
@@ -4820,6 +4872,25 @@ function renderSeasonSettings(){
       save();
     };
   }
+
+  const ruleSelect = document.querySelector('#ruleSet');
+  if (ruleSelect) {
+    if (ruleSelect.options.length === 0) {
+      const allRulesets = getAllRulesets();
+      allRulesets.forEach(rs => {
+        ruleSelect.append(el('option', { value: rs.id }, rs.name));
+      });
+    }
+    const currentRuleId = State.ruleId || 'npb-2025';
+    if (ruleSelect.value !== currentRuleId) {
+      ruleSelect.value = currentRuleId;
+    }
+    ruleSelect.onchange = () => {
+      State.ruleId = ruleSelect.value;
+      normalizeLeagueState(State);
+      saveAndRerender();
+    };
+  }
 }
 
 function renderTeamNarrativePanel(tid){
@@ -5897,10 +5968,19 @@ function showNarrativeLogModal(tid = State.userTeamId ?? 0){
 function hideNarrativeLogModal(){ const modal=$('#narrativeLogModal'); if(modal) modal.style.display='none'; }
 
 
-function renderStandings(target){ const host=resolveTarget(target,'#standings'); if(!host) return; const st=computeStandings(State.teams, State.results||[]); const leagues=["Central","Pacific"]; const container=document.createDocumentFragment();
+function renderStandings(target){ const host=resolveTarget(target,'#standings'); if(!host) return; const st=computeStandings(State.teams, State.results||[], State.league.rules); const leagues=["Central","Pacific"]; const container=document.createDocumentFragment();
+  const showTies = State.league.rules.game.allowTie;
   leagues.forEach(lg=>{ const sub=st.filter(r=>r.league===lg); const title=el("div",{class:"mini",style:"padding:8px 12px;font-weight:bold;text-transform:uppercase;background: var(--card-header-bg); border-bottom: 2px solid var(--card-border);",html:`<b>${lg}</b>`});
-    const tbl=el("table",{}, el("thead",{}, el("tr",{}, el("th",{},"チーム"), el("th",{},"W"), el("th",{},"L"), el("th",{},"Pct"), el("th",{},"GB"))), el("tbody"));
-    for(const r of sub){ tbl.lastChild.append(el("tr",{}, el("td",{},r.team), el("td",{},r.W), el("td",{},r.L), el("td",{},r.Pct.toFixed(3)), el("td",{},(r.GB??0).toFixed(1)))); }
+    const headerItems = ["チーム","W","L"];
+    if (showTies) headerItems.push("T");
+    headerItems.push("Pct", "GB");
+    const tbl=el("table",{}, el("thead",{}, el("tr",{}, ...headerItems.map(h=>el('th',{},h)))), el("tbody"));
+    for(const r of sub){
+      const row = el("tr",{}, el("td",{},r.team), el("td",{},r.W), el("td",{},r.L));
+      if (showTies) row.append(el("td",{}, r.T));
+      row.append(el("td",{},r.Pct.toFixed(3)), el("td",{},(r.GB??0).toFixed(1)));
+      tbl.lastChild.append(row);
+    }
     container.append(title,tbl); });
   host.innerHTML=""; host.append(container);
 }
@@ -8280,7 +8360,7 @@ function renderStatsView(tid){
 
 // ====== Draft System (v12) ======
 function draftOrderFromStandings(){
-  const st = computeStandings(State.teams, State.results||[]);
+  const st = computeStandings(State.teams, State.results||[], State.league.rules);
   if(st && st.length){ return st.slice().sort((a,b)=> a.Pct-b.Pct || a.W-b.W).map(r=>r.team_id); }
   const ids = State.teams.map(t=>t.team_id); const rng=mulberry32(State.seed+999);
   for(let i=ids.length-1;i>0;i--){ const j=Math.floor(rng()*(i+1)); [ids[i],ids[j]]=[ids[j],ids[i]]; }
@@ -8650,6 +8730,11 @@ function recomputeAllRatingsAll(){
 function renderAll(){
   ensureNarrativeState();
   renderSeasonSettings();
+  const ruleSetDisplay = document.querySelector('#ruleSetDisplay');
+  if (ruleSetDisplay) {
+    const ruleset = getRulesetById(State.ruleId);
+    ruleSetDisplay.textContent = ruleset ? ruleset.name : 'Default Rules';
+  }
   scheduleView.renderToday(State);
   const selT=$("#selTeamManage"); if(selT && selT.options.length===0){ teamOptions(selT); selT.selectedIndex=0; }
   renderUserControls();
@@ -8817,7 +8902,7 @@ $("#btnToday").onclick=()=>{
   if(!restDay){
     for(const row of gamesToday){
       const seed=State.seed+day*97+row.home_id*17+row.away_id*13;
-      const res=simulateGameDetailed(row,seed);
+      const res=simulateGameDetailed(row, seed, State.league.rules.game);
       State.results.push(res);
       dpGain(res.winner_id, 0.3);
       const loser=(res.winner_id===row.home_id?row.away_id:row.home_id);
@@ -8955,12 +9040,14 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
 
    // Sound event listener
   document.body.addEventListener('click', (e) => {
-      try {
-          setupSound().catch(err => {
-              console.warn('Sound setup failed on click:', err);
-          });
-      } catch (err) {
-          console.warn('Sound setup threw an unexpected synchronous error; continuing without audio.', err);
+      if (typeof process === 'undefined') { // Simple check to detect non-Node.js env
+        try {
+            setupSound().catch(err => {
+                console.warn('Sound setup failed on click:', err);
+            });
+        } catch (err) {
+            console.warn('Sound setup threw an unexpected synchronous error; continuing without audio.', err);
+        }
       }
 
       const target = e.target.closest('button, .tab, select');
