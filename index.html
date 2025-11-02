@@ -3109,7 +3109,7 @@ function runScoutingTask(mode='daily'){
 }
 
 // ====== Squads & Rotation ======
-const SQUAD_MOVE_COOLDOWN_DAYS = 3;
+const SQUAD_MOVE_COOLDOWN_DAYS = 0;
 function ensureSquads(){ if(State.squadsInit) return; initializePlayerSpecials(); State.squads={}; State.rotation={}; ensureTeamMeta();
   if(!State.squadMoveLog || typeof State.squadMoveLog !== 'object') State.squadMoveLog={};
   for(const t of State.teams){
