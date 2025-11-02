@@ -3720,7 +3720,7 @@ function doSpecialTraining(tid,pid){ ensureTeamMeta(); const cost=5;
 }
 
 // ====== State ======
-const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ try{ const obj=JSON.parse(saved); obj.version=15; obj.ruleId = obj.ruleId || 'npb-2025'; obj.highlights = obj.highlights || []; obj.playoffs = normalizePlayoffState(obj.playoffs); obj.schedule = normalizeScheduleEntries(obj.schedule||[]); obj.gameRecaps = obj.gameRecaps || {}; obj.ui = obj.ui || {}; obj.ui.dashboardTab = obj.ui.dashboardTab || 'season'; obj.cachedMetrics = obj.cachedMetrics || {}; obj.historicalStats = obj.historicalStats || {}; obj.rosterCompliance = obj.rosterCompliance || {}; obj.squadMoveLog = (obj.squadMoveLog && typeof obj.squadMoveLog === 'object') ? obj.squadMoveLog : {}; normalizeTeamFinances(obj); normalizeRosterPlayers(obj); normalizeNarrativeState(obj); normalizeLeagueState(obj); normalizeSeasonInfo(obj); if(Array.isArray(obj.teams)){ obj.teams.forEach(team=>{ calculateDraftTeamNeeds(obj, team.team_id); }); } return obj; }catch(e){} }
+const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ try{ const obj=JSON.parse(saved); obj.version=15; obj.ruleId = obj.ruleId || 'npb-2025'; obj.highlights = obj.highlights || []; obj.playoffs = normalizePlayoffState(obj.playoffs); obj.schedule = normalizeScheduleEntries(obj.schedule||[]); obj.gameRecaps = obj.gameRecaps || {}; obj.ui = obj.ui || {}; obj.ui.dashboardTab = obj.ui.dashboardTab || 'season'; obj.cachedMetrics = obj.cachedMetrics || {}; obj.historicalStats = obj.historicalStats || {}; obj.rosterCompliance = obj.rosterCompliance || {}; obj.squadMoveLog = (obj.squadMoveLog && typeof obj.squadMoveLog === 'object') ? obj.squadMoveLog : {}; obj.userTeamId = Number.isFinite(obj.userTeamId) ? obj.userTeamId : parseInt(obj.userTeamId, 10) || 0; normalizeTeamFinances(obj); normalizeRosterPlayers(obj); normalizeNarrativeState(obj); normalizeLeagueState(obj); normalizeSeasonInfo(obj); if(Array.isArray(obj.teams)){ obj.teams.forEach(team=>{ calculateDraftTeamNeeds(obj, team.team_id); }); } return obj; }catch(e){} }
   const teams=baseTeams.map(t=>({...t})); const rosters={}; teams.forEach(t=>{ rosters[t.team_id]=mkInitialRoster(t.team_id); });
   const baseState = { version:15, ruleId: 'npb-2025', teams, rosters, schedule:[], results:[], curr_day:1, seed:2025, home_adv:0.05, trainingPlans:{}, devLogs:[], weekXP:{}, weekXPLog:{}, squads:{}, squadsInit:false, rotation:{}, teamMeta:{}, teamStrategy:{}, userTeamId:0, commissioner:false, playerStats:{}, playerGameLogs:{}, historicalStats:{}, season:1, highlights: [], playoffs: defaultPlayoffState(), gameRecaps:{}, teamFinances:{}, freeAgents:[], narrativeSettings:{ frequency:'standard', theme:'balanced' }, teamNarratives:{}, narrativeLog:[], ui:{ dashboardTab:'season' }, cachedMetrics:{}, league: defaultLeagueState(), seasonInfo: defaultSeasonInfo(), rosterCompliance:{}, squadMoveLog:{} };
   normalizeTeamFinances(baseState);
@@ -4820,7 +4820,7 @@ const facilitiesView = createFacilitiesView({
   },
   refreshIcons,
 });
-function canControlTeam(tid){ return !!State.commissioner || tid === (State.userTeamId??0); }
+function canControlTeam(tid){ const userTid = Number(State.userTeamId ?? 0); return !!State.commissioner || Number(tid) === userTid; }
 
 function logHighlight(icon, text, meta={}) {
     if (!State.highlights) State.highlights = [];
