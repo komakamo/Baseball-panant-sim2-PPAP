@@ -1,5 +1,7 @@
 
-import {
+import Draft from './draft.js';
+
+const {
   isDraftComplete,
   shouldResolveFirstRound,
   resolveFirstRound,
@@ -7,7 +9,7 @@ import {
   submitBid,
   getDraftOnClockTeamId,
   selectDraftProspect,
-} from './draft.js';
+} = Draft;
 
 export function evaluateProspectBase(p, ensureProspectStructure) {
   ensureProspectStructure(p);
