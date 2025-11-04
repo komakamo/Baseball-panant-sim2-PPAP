@@ -981,6 +981,7 @@ import createFacilitiesView from './src/ui/views/FacilitiesView.js';
 import createFinanceView from './src/ui/views/FinanceView.js';
 import { ensureTeamFans as ensureTeamFansState } from './src/systems/fans.js';
 import { ensureSponsorDeals as ensureSponsorDealsState } from './src/systems/sponsors.js';
+import teamSelectionStore from './src/state/team_selection_store.js';
 import {
   chooseBestProspectForTeam as chooseBestProspectForTeamLogic,
   autoDraftStep as autoDraftStepLogic,
@@ -4949,11 +4950,8 @@ function logHighlight(icon, text, meta={}) {
 }
 
 function renderUserControls(){
-  const selU = document.querySelector('#selUserTeam');
-  if(selU){ if(selU.options.length===0){ teamOptions(selU); }
-    selU.value = String(State.userTeamId??0);
-    selU.onchange = ()=>{ State.userTeamId = parseInt(selU.value)||0; saveAndRerender(); };
-  }
+  // This logic is now handled in the init() function to sync with teamSelectionStore.
+  // We only handle the mode select here now.
   const mode = document.querySelector('#modeSelect');
   if(mode){ mode.value = State.commissioner? 'comm':'user';
     mode.onchange = ()=>{ State.commissioner = (mode.value==='comm'); saveAndRerender(); };
@@ -9037,7 +9035,6 @@ $$('#dashboard-tabs .dashboard-tab').forEach(btn=>{
     renderDashboardTabs(tab);
   });
 });
-$("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTabs((State.ui && State.ui.dashboardTab) || 'season'); renderManagementView(); };
 
 // ====== Boot ======
 (async function init(){
@@ -9154,6 +9151,47 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
           }
       }
   }, true); // Use capture phase
+
+  // ======== Team Selection Sync ========
+  const selUserTeam = document.querySelector('#selUserTeam');
+  const selTeamManage = document.querySelector('#selTeamManage');
+
+  if(selUserTeam.options.length === 0) { teamOptions(selUserTeam); }
+  if(selTeamManage.options.length === 0) { teamOptions(selTeamManage); }
+
+  teamSelectionStore.subscribe((newTeamId, source) => {
+    const newTeamIdStr = String(newTeamId);
+    if (selUserTeam.value !== newTeamIdStr) {
+      selUserTeam.value = newTeamIdStr;
+    }
+    if (selTeamManage.value !== newTeamIdStr) {
+      selTeamManage.value = newTeamIdStr;
+    }
+    // Update State.userTeamId which is used by other parts of the application
+    State.userTeamId = newTeamId;
+
+    // Re-render relevant parts of the UI when team selection changes
+    renderDashboardOverview();
+    renderDashboardTabs((State.ui && State.ui.dashboardTab) || 'season');
+    renderManagementView();
+    save(); // Save the state change
+  });
+
+  selUserTeam.addEventListener('change', () => {
+    const newTeamId = parseInt(selUserTeam.value, 10);
+    teamSelectionStore.set(newTeamId, 'selUserTeam');
+  });
+
+  selTeamManage.addEventListener('change', () => {
+    const newTeamId = parseInt(selTeamManage.value, 10);
+    teamSelectionStore.set(newTeamId, 'selTeamManage');
+  });
+
+  // Set initial state from store
+  const initialTeamId = teamSelectionStore.get();
+  teamSelectionStore.set(initialTeamId, 'init');
+  // ======== End Team Selection Sync ========
+
 
   ensureSquads();
   refreshRosterComplianceAll();
