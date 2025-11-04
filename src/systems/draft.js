@@ -399,8 +399,8 @@ export function resolveFirstRound(state, { random = Math.random, onLog } = {}) {
   draft.pendingFirstRound = losers;
   if (losers.length === 0) {
     draft.round = 2;
-    draft.direction = 1;
-    draft.onClockIndex = 0;
+    draft.direction = -1;
+    draft.onClockIndex = draft.order.length - 1;
   }
   return { winners, losers, complete: losers.length === 0 };
 }
