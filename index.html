@@ -161,7 +161,7 @@
     .draft-qa-note{font-size:12px;color:var(--text-secondary);line-height:1.6}
     .draft-empty-note{font-size:13px;color:var(--text-secondary);padding:12px 0}
     .draft-table-card{border:2px solid var(--card-border);border-radius:14px;background:rgba(255,255,255,0.96);box-shadow:0 8px 0 0 var(--shadow-color);padding:18px}
-    .draft-table-card>.table-scroll{margin-top:12px;border-radius:12px; scrollbar-gutter: stable; padding-bottom: 10px;}
+    .draft-table-card>.table-scroll{margin-top:12px;border-radius:12px; scrollbar-gutter: stable both-edges; padding-bottom: 14px;}
     .draft-summary-body{gap:16px}
     @keyframes draftLogEnter{to{opacity:1;transform:translateY(0)}}
     .season-timeline-card{border:2px solid var(--card-border);border-radius:12px;background:rgba(255,255,255,0.92);padding:18px 20px;display:flex;flex-direction:column;gap:16px}
@@ -488,6 +488,10 @@
       flex-direction: column;
       gap: 8px;
       transition: transform 0.2s ease-out;
+  pointer-events: none;
+}
+#debug-panel > * {
+      pointer-events: auto;
     }
     @media (max-width: 1200px) {
       #debug-panel {
@@ -501,6 +505,8 @@
         right: 16px;
         top: auto;
         bottom: 10px;
+        max-width: calc(100% - 32px);
+        max-height: 45vh;
       }
     }
 
