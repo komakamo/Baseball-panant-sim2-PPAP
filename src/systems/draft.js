@@ -450,7 +450,7 @@ function advanceSnakeClock(draft) {
       draft.onClockIndex = 0;
       return;
     }
-    draft.direction = draft.round % 2 === 0 ? 1 : -1;
+    draft.direction = draft.round % 2 === 0 ? -1 : 1;
     draft.onClockIndex = draft.direction === 1 ? 0 : order.length - 1;
   } else {
     draft.onClockIndex = index;

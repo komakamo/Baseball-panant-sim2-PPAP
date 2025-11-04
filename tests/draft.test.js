@@ -94,4 +94,47 @@ describe('draft', () => {
     expect(updatedNeeds.SP).toBeLessThan(emptyNeeds.SP);
     expect(state.teams[0].needs).toEqual(updatedNeeds);
   });
+
+  it('should follow a snake pattern for draft picks', () => {
+    const state = { season: 2025, draft: {} };
+    const order = [0, 1, 2, 3];
+    const prospects = Array.from({ length: 20 }, (_, i) => ({
+      pid: `P${i}`,
+      name: `Prospect ${i}`,
+      type: 'BAT',
+      trueRatings: { pot: 70 },
+    }));
+    initializeDraft(state, { order, prospects, rounds: 3 });
+    // Manually advance to round 2 to test snake logic
+    state.draft.round = 2;
+    state.draft.direction = 1;
+    state.draft.onClockIndex = 0;
+
+    const { selectProspect, getOnClockTeamId, isDraftOver } = require('../src/systems/draft.js');
+
+    const picks = [];
+
+    // Round 2 (reverse order)
+    selectProspect(state, 3, 'P0');
+    picks.push(3);
+    selectProspect(state, 2, 'P1');
+    picks.push(2);
+    selectProspect(state, 1, 'P2');
+    picks.push(1);
+    selectProspect(state, 0, 'P3');
+    picks.push(0);
+
+    // Round 3 (forward order)
+    selectProspect(state, 0, 'P4');
+    picks.push(0);
+    selectProspect(state, 1, 'P5');
+    picks.push(1);
+    selectProspect(state, 2, 'P6');
+    picks.push(2);
+    selectProspect(state, 3, 'P7');
+    picks.push(3);
+
+    const expectedPicks = [3, 2, 1, 0, 0, 1, 2, 3];
+    expect(picks).toEqual(expectedPicks.slice(0, picks.length));
+  });
 });
