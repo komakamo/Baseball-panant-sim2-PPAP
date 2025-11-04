@@ -6997,9 +6997,7 @@ function squadSelect(tid, pid, cur){
       return;
     }
     recomputeAllRatingsAll();
-    save();
-    renderManagementView();
-    updateAdvanceButtonsState();
+    saveAndRerender();
   };
   return sl;
 }
@@ -8650,9 +8648,6 @@ function ensureDraft(){
   if(typeof draft.completed!=='boolean') draft.completed=false;
   return draft;
 }
-function evaluateProspectBase(p){ ensureProspectStructure(p); const r=p.trueRatings||{}; if(p.type==='BAT'){ return r.pot*1.1 + r.pwr*0.4 + r.con*0.4 + r.spd*0.2; } else { return r.pot*1.1 + r.velo*0.35 + r.mov*0.35 + r.ctrl*0.25 + (p.role==='SP'?5:0); } }
-function prospectNeedBucket(prospect){ ensureProspectStructure(prospect); const bucket=getDraftProspectNeedCategory(prospect); if(bucket) return bucket; if(prospect.type==='PIT'){ const role=(prospect.role||prospect.pos||'').toUpperCase(); return role==='SP'?'SP':'RP'; } const pos=(prospect.pos||'').toUpperCase(); if(pos==='C') return 'C'; if(['LF','CF','RF','OF'].includes(pos)) return 'OF'; return 'IF'; }
-function evaluateProspectForTeam(prospect, teamId){ ensureProspectStructure(prospect); const base=evaluateProspectBase(prospect); if(teamId==null){ return base; } ensureTeamNeedsAll(); const team=State.teams?.find(t=>t.team_id===teamId); if(!team){ return base; } const bucket=prospectNeedBucket(prospect); const need=clamp((team.needs?.[bucket])??0,0,1.5); let score=base*(1+need*0.45); if(prospect.potRange){ const range=prospect.potRange; const spread=clamp((range.max-range.min),0,30); score+=spread*0.12; const mid=(range.min+range.max)/2; score+= (mid-base)*0.05; } if(typeof prospect.signWillingness==='number'){ score*=1+clamp((prospect.signWillingness-60)/220,-0.25,0.35); } if(typeof prospect.riskInjury==='number'){ score*=1-clamp((prospect.riskInjury-50)/220,-0.3,0.3); } return score; }
 function handleDraftEvent(type, payload){
   draftView?.pushEvent?.(type, payload);
   if(type==='lottery'){
