@@ -9205,6 +9205,9 @@ $$('#dashboard-tabs .dashboard-tab').forEach(btn=>{
   }, { passive: false });
 
   document.addEventListener('keydown', (e) => {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+        return;
+      }
       if (e.key === 'Escape') {
           if ($('#playerDetailModal').style.display === 'flex') hidePlayerDetailModal();
           if ($('#gameRecapModal').style.display === 'flex') hideGameRecapModal();
