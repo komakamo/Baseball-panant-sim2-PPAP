@@ -907,7 +907,8 @@
 import { logUserAction } from './src/utils/action_logger.js';
 import LeagueRules from './src/core/rules.js';
 import { getAllRulesets, getRulesetById } from './src/rulesets.js';
-import ScheduleBuilder, { normalizeScheduleEntries } from './src/core/schedule.js';
+import { generateSchedule } from './src/systems/schedule_generator.js';
+import rulesStore from './src/state/rules_store.js';
 import { valuePlayerContract, normalizeContractTerms, negotiateContractOffer as evaluateNegotiation } from './src/systems/contracts.js';
 import { determineFreeAgencyEligibility, rankFreeAgent, ensureFreeAgencyState, processFreeAgentSigning } from './src/systems/free_agency.js';
 import {
@@ -1597,15 +1598,17 @@ function defaultLeagueState(){
   };
 }
 
-function normalizeLeagueState(state){
-  if(!state || typeof state !== 'object') return;
-  if(!state.league || typeof state.league !== 'object'){
+function normalizeLeagueState(state) {
+  if (!state || typeof state !== 'object') return;
+  if (!state.league || typeof state.league !== 'object') {
     state.league = defaultLeagueState();
   }
   const selectedRuleset = getRulesetById(state.ruleId);
   const gameRules = selectedRuleset ? { ...selectedRuleset } : {};
-  state.league.rules = LeagueRules.normalizeRules({ ...state.league.rules, game: gameRules });
+  const newRules = LeagueRules.normalizeRules({ ...state.league.rules, game: gameRules });
+  state.league.rules = newRules;
   state.ruleId = selectedRuleset.id;
+  rulesStore.set(newRules);
   return state.league;
 }
 
@@ -3830,7 +3833,7 @@ function doSpecialTraining(tid,pid){ ensureTeamMeta(); const cost=5;
 }
 
 // ====== State ======
-const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ try{ const obj=JSON.parse(saved); obj.version=15; obj.ruleId = obj.ruleId || 'npb-2025'; obj.highlights = obj.highlights || []; obj.playoffs = normalizePlayoffState(obj.playoffs); obj.schedule = normalizeScheduleEntries(obj.schedule||[]); obj.gameRecaps = obj.gameRecaps || {}; obj.ui = obj.ui || {}; obj.ui.dashboardTab = obj.ui.dashboardTab || 'season'; obj.cachedMetrics = obj.cachedMetrics || {}; obj.historicalStats = obj.historicalStats || {}; obj.rosterCompliance = obj.rosterCompliance || {}; obj.squadMoveLog = (obj.squadMoveLog && typeof obj.squadMoveLog === 'object') ? obj.squadMoveLog : {}; obj.userTeamId = Number.isFinite(obj.userTeamId) ? obj.userTeamId : parseInt(obj.userTeamId, 10) || 0; normalizeTeamFinances(obj); normalizeRosterPlayers(obj); normalizeSquadAssignments(obj); normalizeNarrativeState(obj); normalizeLeagueState(obj); normalizeSeasonInfo(obj); if(Array.isArray(obj.teams)){ obj.teams.forEach(team=>{ calculateDraftTeamNeeds(obj, team.team_id); }); } return obj; }catch(e){} }
+const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ try{ const obj=JSON.parse(saved); obj.version=15; obj.ruleId = obj.ruleId || 'npb-2025'; obj.highlights = obj.highlights || []; obj.playoffs = normalizePlayoffState(obj.playoffs); obj.schedule = obj.schedule||[]; obj.gameRecaps = obj.gameRecaps || {}; obj.ui = obj.ui || {}; obj.ui.dashboardTab = obj.ui.dashboardTab || 'season'; obj.cachedMetrics = obj.cachedMetrics || {}; obj.historicalStats = obj.historicalStats || {}; obj.rosterCompliance = obj.rosterCompliance || {}; obj.squadMoveLog = (obj.squadMoveLog && typeof obj.squadMoveLog === 'object') ? obj.squadMoveLog : {}; obj.userTeamId = Number.isFinite(obj.userTeamId) ? obj.userTeamId : parseInt(obj.userTeamId, 10) || 0; normalizeTeamFinances(obj); normalizeRosterPlayers(obj); normalizeSquadAssignments(obj); normalizeNarrativeState(obj); normalizeLeagueState(obj); normalizeSeasonInfo(obj); if(Array.isArray(obj.teams)){ obj.teams.forEach(team=>{ calculateDraftTeamNeeds(obj, team.team_id); }); } return obj; }catch(e){} }
   const teams=baseTeams.map(t=>({...t})); const rosters={}; teams.forEach(t=>{ rosters[t.team_id]=mkInitialRoster(t.team_id); });
   const baseState = { version:15, ruleId: 'npb-2025', teams, rosters, schedule:[], results:[], curr_day:1, seed:2025, home_adv:0.05, trainingPlans:{}, devLogs:[], weekXP:{}, weekXPLog:{}, squads:{}, squadsInit:false, rotation:{}, teamMeta:{}, teamStrategy:{}, userTeamId:0, commissioner:false, playerStats:{}, playerGameLogs:{}, historicalStats:{}, season:1, highlights: [], playoffs: defaultPlayoffState(), gameRecaps:{}, teamFinances:{}, freeAgents:[], narrativeSettings:{ frequency:'standard', theme:'balanced' }, teamNarratives:{}, narrativeLog:[], ui:{ dashboardTab:'season' }, cachedMetrics:{}, league: defaultLeagueState(), seasonInfo: defaultSeasonInfo(), rosterCompliance:{}, squadMoveLog:{} };
   normalizeTeamFinances(baseState);
@@ -4994,9 +4997,52 @@ function renderSeasonSettings(){
       ruleSelect.value = currentRuleId;
     }
     ruleSelect.onchange = () => {
-      State.ruleId = ruleSelect.value;
+      const newRuleId = ruleSelect.value;
+      if (newRuleId === State.ruleId) return;
+
+      // Get old rules before changing state
+      const oldRules = rulesStore.get();
+
+      // Update state and get new rules
+      State.ruleId = newRuleId;
       normalizeLeagueState(State);
+      const newRules = rulesStore.get();
       saveAndRerender();
+
+      const scheduleRelevantChanges = (
+        JSON.stringify(oldRules.game) !== JSON.stringify(newRules.game) ||
+        JSON.stringify(oldRules.interleague) !== JSON.stringify(newRules.interleague) ||
+        oldRules.gamesPerTeam !== newRules.gamesPerTeam
+      );
+
+      if (scheduleRelevantChanges) {
+        if (confirm('ルールセットの変更にはスケジュールの再生成が必要です。実行しますか？\n注意: 現在のシーズン進行状況はリセットされます。')) {
+          const seed=parseInt($("#seed").value)||2025;
+          const reps=parseInt($("#repeats").value)||6;
+
+          const { schedule, calendarInfo } = generateSchedule({
+            teams: State.teams,
+            rules: newRules,
+            seed: seed + State.season,
+            repeats: reps
+          });
+
+          State.seasonInfo = calendarInfo;
+          normalizeSeasonInfo(State);
+
+          State.league.rules.gamesPerTeam = calendarInfo.gamesPerTeam || newRules.gamesPerTeam;
+
+          State.schedule = schedule;
+          State.results=[];
+          State.curr_day=1;
+          State.weekXP={}; State.weekXPLog={};
+          State.squadsInit=false;
+          State.playerGameLogs = {};
+          ensureSquads();
+          recomputeAllRatingsAll();
+          saveAndRerender();
+        }
+      }
     };
   }
 }
@@ -8797,11 +8843,14 @@ function recomputeAllRatingsAll(){
 function renderAll(){
   ensureNarrativeState();
   renderSeasonSettings();
+
   const ruleSetDisplay = document.querySelector('#ruleSetDisplay');
   if (ruleSetDisplay) {
+    const rules = rulesStore.get();
     const ruleset = getRulesetById(State.ruleId);
     ruleSetDisplay.textContent = ruleset ? ruleset.name : 'Default Rules';
   }
+
   scheduleView.renderToday(State);
   const selT=$("#selTeamManage"); if(selT && selT.options.length===0){ teamOptions(selT); selT.selectedIndex=0; }
   renderUserControls();
@@ -8879,30 +8928,22 @@ $("#btnGen").onclick=()=>{
   State.seed=seed;
   normalizeLeagueState(State);
   const rules = LeagueRules.ensureLeagueRules(State.league);
-  const calendarResult = ScheduleBuilder.buildSeasonCalendar({ teams: State.teams, seed: seed + State.season, rules, repeats: reps });
-  const derivedSchedule = ScheduleBuilder.calendarToSchedule(calendarResult.calendar);
-  State.seasonInfo = {
-    calendar: calendarResult.calendar,
-    stage: calendarResult.calendar[0]?.stage || 'PRE',
-    dayLookup: calendarResult.dayLookup,
-    stageBounds: calendarResult.stageBounds,
-    regularSeasonEnd: calendarResult.regularSeasonEnd,
-    gamesPerTeam: calendarResult.gamesPerTeam,
-    totalsByTeam: calendarResult.totalsByTeam
-  };
+
+  const { schedule, calendarInfo } = generateSchedule({
+    teams: State.teams,
+    rules,
+    seed: seed + State.season,
+    repeats: reps
+  });
+
+  State.seasonInfo = calendarInfo;
   normalizeSeasonInfo(State);
+
   State.league.rules = {
     ...rules,
-    gamesPerTeam: calendarResult.gamesPerTeam || rules.gamesPerTeam,
-    interleague: { ...rules.interleague },
-    allStarBreak: { ...rules.allStarBreak },
-    roster: { ...rules.roster },
-    postseason: {
-      cs: { ...(rules.postseason?.cs||{}) },
-      js: { ...(rules.postseason?.js||{}) }
-    }
+    gamesPerTeam: calendarInfo.gamesPerTeam || rules.gamesPerTeam,
   };
-  State.schedule=normalizeScheduleEntries(derivedSchedule);
+  State.schedule = schedule;
   State.results=[];
   State.curr_day=1;
   State.weekXP={}; State.weekXPLog={};
@@ -9197,6 +9238,16 @@ $$('#dashboard-tabs .dashboard-tab').forEach(btn=>{
   refreshRosterComplianceAll();
   save();
   renderAll();
+
+  rulesStore.subscribe((newRules) => {
+    console.log('Rules updated:', newRules);
+    const ruleSetDisplay = document.querySelector('#ruleSetDisplay');
+    if (ruleSetDisplay) {
+      // The new rules are passed directly to the subscriber, no need to read global state
+      const ruleset = getRulesetById(newRules.game.id || State.ruleId);
+      ruleSetDisplay.textContent = ruleset ? ruleset.name : 'Default Rules';
+    }
+  });
 })();
 </script>
 
