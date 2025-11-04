@@ -8995,8 +8995,6 @@ $("#btnEnd").onclick=()=>{
     if(hasBlockingRosterViolations()) break;
   }
 };
-$("#btnReset").onclick=()=>{ logUserAction('ButtonClick', 'ResetAllData'); if(confirm("本当に全データをリセットしますか？この操作は元に戻せません。")){ localStorage.removeItem(SAVE_KEY); window.location.reload(); } };
-
 // ====== Save/Load ======
 function save(){ localStorage.setItem(SAVE_KEY, JSON.stringify(State)); }
 function saveAndRerender(){ refreshRosterComplianceAll(); save(); renderAll(); }
@@ -9101,6 +9099,11 @@ $("#selTeamManage").onchange=()=>{ renderDashboardOverview(); renderDashboardTab
               const button = target;
               if (button.id === 'btnReset') {
                   playSound('G2', '8n');
+                  logUserAction('ButtonClick', 'ResetAllData');
+                  if(confirm("本当に全データをリセットしますか？この操作は元に戻せません。")){
+                      localStorage.removeItem(SAVE_KEY);
+                      window.location.reload();
+                  }
               } else if (button.classList.contains('primary')) {
                   playSound('G4', '16n');
               } else if (button.id === 'btnToday' || button.id === 'btnEnd') {
