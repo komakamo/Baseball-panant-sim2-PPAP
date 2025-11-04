@@ -148,6 +148,7 @@ export const refresh = updateGameStateDisplay;
 const julesDebugLogs = [];
 let julesLastError = null;
 const MAX_JULES_LOGS = 50;
+const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
 
 function julesLog(message, level = 'info') {
     const timestamp = new Date().toLocaleTimeString();
@@ -262,6 +263,23 @@ function setupJulesDebugConsole() {
     const consoleEl = $('#jules-debug-console');
     if (!consoleEl) return;
 
+    const savedPos = localStorage.getItem('julesDebugConsolePos');
+    if (savedPos) {
+        try {
+            const { x, y } = JSON.parse(savedPos);
+            const rect = consoleEl.getBoundingClientRect();
+            consoleEl.style.left = `${clamp(x, 0, window.innerWidth - rect.width)}px`;
+            consoleEl.style.top = `${clamp(y, 0, window.innerHeight - rect.height)}px`;
+        } catch (e) {
+            console.warn('Failed to parse saved console position', e);
+            localStorage.removeItem('julesDebugConsolePos');
+        }
+    } else {
+        // Default to bottom-right if no position is saved
+        consoleEl.style.left = `${window.innerWidth - consoleEl.offsetWidth - 20}px`;
+        consoleEl.style.top = `${window.innerHeight - consoleEl.offsetHeight - 20}px`;
+    }
+
     // Capture global errors
     window.addEventListener('error', (event) => {
         logUserAction('ErrorOccurred', event.message);
@@ -327,27 +345,44 @@ function setupJulesDebugConsole() {
 
     // Draggable header
     const header = $('#jules-debug-header');
-    let isDragging = false;
-    let offset = { x: 0, y: 0 };
-    header.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        offset.x = e.clientX - consoleEl.offsetLeft;
-        offset.y = e.clientY - consoleEl.offsetTop;
-        header.style.cursor = 'grabbing';
-    });
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        consoleEl.style.left = `${e.clientX - offset.x}px`;
-        consoleEl.style.top = `${e.clientY - offset.y}px`;
-        // Make sure it is not off-screen
+    if (header) {
+        header.addEventListener('pointerdown', onPointerDown);
+    }
+
+    function onPointerDown(e) {
+        if (e.button !== 0) return;
         const rect = consoleEl.getBoundingClientRect();
-        if (rect.top < 0) consoleEl.style.top = '0px';
-        if (rect.left < 0) consoleEl.style.left = '0px';
-        if (rect.right > window.innerWidth) consoleEl.style.left = `${window.innerWidth - rect.width}px`;
-        if (rect.bottom > window.innerHeight) consoleEl.style.top = `${window.innerHeight - rect.height}px`;
-    });
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-        header.style.cursor = 'move';
-    });
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+
+        header.style.cursor = 'grabbing';
+        consoleEl.style.userSelect = 'none';
+        document.body.style.cursor = 'grabbing';
+
+        function onPointerMove(e) {
+            let newLeft = e.clientX - offsetX;
+            let newTop = e.clientY - offsetY;
+
+            const maxLeft = window.innerWidth - rect.width;
+            const maxTop = window.innerHeight - rect.height;
+
+            consoleEl.style.left = `${clamp(newLeft, 0, maxLeft)}px`;
+            consoleEl.style.top = `${clamp(newTop, 0, maxTop)}px`;
+        }
+
+        function onPointerUp() {
+            header.style.cursor = 'move';
+            consoleEl.style.userSelect = '';
+            document.body.style.cursor = '';
+
+            const finalRect = consoleEl.getBoundingClientRect();
+            localStorage.setItem('julesDebugConsolePos', JSON.stringify({ x: finalRect.left, y: finalRect.top }));
+
+            document.removeEventListener('pointermove', onPointerMove);
+            document.removeEventListener('pointerup', onPointerUp);
+        }
+
+        document.addEventListener('pointermove', onPointerMove);
+        document.addEventListener('pointerup', onPointerUp);
+    }
 }
