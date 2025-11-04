@@ -149,9 +149,24 @@ export function createFacilitiesView({
     return parts.filter(Boolean);
   }
 
+  function findMaxAffordableLevel(currentLevel, maxLevel, availableDp) {
+    if (availableDp <= 0) return currentLevel;
+    let cost = 0;
+    for (let i = currentLevel; i < maxLevel; i++) {
+      const costForNextLevel = 20 + i * 10;
+      if (cost + costForNextLevel > availableDp) {
+        return i;
+      }
+      cost += costForNextLevel;
+    }
+    return maxLevel;
+  }
+
   function buildFacilityRow(state, context, type, facilities, controls) {
     const level = Number(facilities?.[type.key]) || 0;
     const canControl = context.canControl;
+    const meta = state.teamMeta?.[context.teamId];
+    const dp = Number(meta?.dp) || 0;
     const row = createElement('div', { class: 'facility-slider-row' });
     const header = createElement('div', { class: 'facility-slider-header' },
       createElement('div', { class: 'facility-slider-title' },
@@ -180,7 +195,7 @@ export function createFacilitiesView({
 
     const slider = createElement('input', {
       type: 'range',
-      min: level,
+      min: 0,
       max: type.max,
       step: 1,
       value: level,
@@ -195,12 +210,42 @@ export function createFacilitiesView({
     };
 
     slider.oninput = () => {
-      const value = Number(slider.value);
+      let value = Number(slider.value);
+      if (value < level) {
+        value = level;
+        slider.value = level;
+        slider.title = '施設のダウングレードはできません。';
+      } else {
+        slider.title = '';
+      }
+
+      const maxAffordable = findMaxAffordableLevel(level, type.max, dp);
+      if (value > maxAffordable) {
+        slider.classList.add('warn');
+        slider.title = `DPが不足しています。\n最大Lv${maxAffordable}まで強化可能です。`;
+      } else {
+        slider.classList.remove('warn');
+        if (value < level) {
+          slider.title = '施設のダウングレードはできません。';
+        } else {
+          slider.title = '';
+        }
+      }
+
       controlRefs.valueLabel.textContent = `Lv${value}`;
       updateEffectPreview(value);
     };
     slider.onchange = () => {
-      applyFacilityLevel(state, context, type, Number(slider.value), controlRefs);
+      let value = Number(slider.value);
+      const maxAffordable = findMaxAffordableLevel(level, type.max, dp);
+      if (value > maxAffordable) {
+        value = maxAffordable;
+        slider.value = maxAffordable;
+        if (typeof showToast === 'function') {
+          showToast(`DPが不足しているため、Lv${maxAffordable}に設定しました。`, { type: 'info', duration: 4200 });
+        }
+      }
+      applyFacilityLevel(state, context, type, value, controlRefs);
     };
 
     row.append(header, description, slider, effects,
@@ -252,7 +297,7 @@ export function createFacilitiesView({
     refreshIcons();
   }
 
-  return { render };
+  return { render, findMaxAffordableLevel };
 }
 
 export default createFacilitiesView;

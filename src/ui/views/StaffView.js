@@ -77,6 +77,12 @@ export function createStaffView({
     return millionFormatter(value);
   }
 
+  function findMaxAffordableStaff(currentValue, reserves, unitCost) {
+    if (unitCost <= 0) return currentValue;
+    const affordableIncrease = Math.floor(reserves / unitCost);
+    return currentValue + affordableIncrease;
+  }
+
   function adjustStaffLevel(context, type, nextValue, controls) {
     const { teamId } = context;
     const state = getState();
@@ -148,6 +154,9 @@ export function createStaffView({
   function buildStaffRow(context, type, finance, reserveLabel) {
     const current = Number(finance.staff?.[type.key]) || 0;
     const canControl = context.canControl;
+    const reserves = Number(finance.budget?.reserves) || 0;
+    const unitCost = Number(staffCosts[type.key]) || 0;
+
     const row = createElement('div', { class: 'staff-slider-row' });
     const header = createElement('div', { class: 'staff-slider-header' },
       createElement('div', { class: 'staff-slider-title' },
@@ -176,10 +185,28 @@ export function createStaffView({
     };
 
     slider.oninput = () => {
-      controls.valueLabel.textContent = `${slider.value} 名`;
+      const value = Number(slider.value);
+      const maxAffordable = findMaxAffordableStaff(current, reserves, unitCost);
+      if (value > maxAffordable) {
+        slider.classList.add('warn');
+        slider.title = `予算が不足しています。\n最大${maxAffordable}名まで雇用可能です。`;
+      } else {
+        slider.classList.remove('warn');
+        slider.title = '';
+      }
+      controls.valueLabel.textContent = `${value} 名`;
     };
     slider.onchange = () => {
-      adjustStaffLevel(context, type, Number(slider.value), controls);
+      let value = Number(slider.value);
+      const maxAffordable = findMaxAffordableStaff(current, reserves, unitCost);
+      if (value > maxAffordable) {
+        value = maxAffordable;
+        slider.value = maxAffordable;
+        if (typeof showToast === 'function') {
+          showToast(`予算が不足しているため、${maxAffordable}名に設定しました。`, { type: 'info', duration: 4200 });
+        }
+      }
+      adjustStaffLevel(context, type, value, controls);
     };
 
     row.append(header, meta, slider,
@@ -231,7 +258,7 @@ export function createStaffView({
     refreshIcons();
   }
 
-  return { render };
+  return { render, findMaxAffordableStaff };
 }
 
 export default createStaffView;
