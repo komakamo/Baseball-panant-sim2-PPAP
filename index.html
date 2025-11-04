@@ -633,11 +633,30 @@
       display: flex;
       justify-content: flex-end;
     }
+
+    /* Accessibility */
+    .skip-link {
+      position: absolute;
+      top: -999px;
+      left: 8px;
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 16px;
+      z-index: 9999;
+      border-radius: 8px;
+      font-weight: 700;
+      transition: top 0.2s ease-out;
+      box-shadow: 0 4px 0 0 var(--primary-hover);
+    }
+    .skip-link:focus {
+      top: 8px;
+    }
   </style>
 </head>
 <body>
+  <a href="#main-content" class="skip-link">メインコンテンツへスキップ</a>
   <div id="startup-error" style="position:fixed;top:0;left:0;right:0;background:#e53e3e;color:white;padding:1em;text-align:center;z-index:9999;font-family:monospace;display:none;font-size:14px;line-height:1.6;"></div>
-  <header>
+  <header role="banner">
     <div style="display:flex;gap:16px;align-items:center;justify-content:space-between;">
       <h1><i data-lucide="baseball" class="logo-icon"></i>PennantSim Lite Web v12</h1>
       <div style="display:flex;gap:8px;align-items:center;">
@@ -649,8 +668,8 @@
   </header>
 
   <div class="wrap">
-    <aside class="sidebar">
-      <section class="card">
+    <aside class="sidebar" role="complementary">
+      <section class="card" id="skip-target-progression" tabindex="-1">
         <div class="card-header"><h2><i data-lucide="calendar-days"></i>進行</h2></div>
         <div class="card-content">
           <div class="controls" style="flex-direction:column;align-items:stretch;gap:8px;">
@@ -670,7 +689,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="skip-target-settings" tabindex="-1">
         <div class="card-header"><h2><i data-lucide="sliders-horizontal"></i>設定</h2></div>
         <div class="card-content">
           <div class="controls" style="flex-direction:column;align-items:stretch;gap:12px;">
@@ -697,7 +716,7 @@
       </section>
 
       <!-- 操作設定: 自分チーム＆モード -->
-      <section class="card">
+      <section class="card" id="skip-target-user-settings" tabindex="-1">
         <div class="card-header"><h2><i data-lucide="gamepad-2"></i>操作設定</h2></div>
         <div class="card-content">
           <div class="controls" style="flex-direction:column;align-items:stretch;gap:8px;">
@@ -710,10 +729,10 @@
 
     </aside>
 
-    <main class="main">
-      <section class="card" id="dashboard-overview-card">
+    <main class="main" role="main" id="main-content" tabindex="-1">
+      <section class="card" id="dashboard-overview-card" aria-labelledby="dashboard-overview-heading" tabindex="-1">
         <div class="card-header">
-          <h2><i data-lucide="gauge"></i>シーズンダッシュボード</h2>
+          <h2 id="dashboard-overview-heading"><i data-lucide="gauge"></i>シーズンダッシュボード</h2>
         </div>
         <div class="card-content">
           <div id="dashboard-overview">
@@ -722,9 +741,9 @@
           </div>
         </div>
       </section>
-      <section class="card" id="dashboard-panels-card">
+      <section class="card" id="dashboard-panels-card" aria-labelledby="dashboard-panels-heading" tabindex="-1">
         <div class="card-header">
-          <h2><i data-lucide="layout-dashboard"></i>クラブインサイト</h2>
+          <h2 id="dashboard-panels-heading"><i data-lucide="layout-dashboard"></i>クラブインサイト</h2>
         </div>
         <div class="card-content">
           <div id="dashboard-tabs" class="dashboard-tabs" role="tablist">
@@ -735,30 +754,30 @@
           <div id="dashboard-panels" class="dashboard-panels">
             <div class="dashboard-panel" data-panel="season" role="tabpanel" aria-hidden="true">
               <div class="dashboard-panel-grid">
-                <section class="dashboard-panel-card" data-panel-card="standings">
-                  <header class="dashboard-panel-card-header"><i data-lucide="bar-chart-3"></i><span>順位表</span></header>
+                <section class="dashboard-panel-card" data-panel-card="standings" aria-labelledby="standings-heading">
+                  <header class="dashboard-panel-card-header"><h3 id="standings-heading"><i data-lucide="bar-chart-3"></i><span>順位表</span></h3></header>
                   <div class="dashboard-panel-card-body" id="dashboard-standings"></div>
                 </section>
-                <section class="dashboard-panel-card" data-panel-card="playoffs" data-playoff-card>
-                  <header class="dashboard-panel-card-header"><i data-lucide="trophy"></i><span>ポストシーズン</span></header>
+                <section class="dashboard-panel-card" data-panel-card="playoffs" data-playoff-card aria-labelledby="playoffs-heading">
+                  <header class="dashboard-panel-card-header"><h3 id="playoffs-heading"><i data-lucide="trophy"></i><span>ポストシーズン</span></h3></header>
                   <div class="dashboard-panel-card-body" id="dashboard-playoffs"></div>
                 </section>
               </div>
             </div>
             <div class="dashboard-panel" data-panel="finance" role="tabpanel" aria-hidden="true">
-              <section class="dashboard-panel-card" data-panel-card="finance">
-                <header class="dashboard-panel-card-header"><i data-lucide="factory"></i><span>フロントオフィス</span></header>
+              <section class="dashboard-panel-card" data-panel-card="finance" aria-labelledby="finance-heading">
+                <header class="dashboard-panel-card-header"><h3 id="finance-heading"><i data-lucide="factory"></i><span>フロントオフィス</span></h3></header>
                 <div class="dashboard-panel-card-body" id="dashboard-front-office"></div>
               </section>
             </div>
             <div class="dashboard-panel" data-panel="development" role="tabpanel" aria-hidden="true">
               <div class="dashboard-panel-grid">
-                <section class="dashboard-panel-card" data-panel-card="recent">
-                  <header class="dashboard-panel-card-header"><i data-lucide="history"></i><span>直近の結果</span></header>
+                <section class="dashboard-panel-card" data-panel-card="recent" aria-labelledby="recent-heading">
+                  <header class="dashboard-panel-card-header"><h3 id="recent-heading"><i data-lucide="history"></i><span>直近の結果</span></h3></header>
                   <div class="dashboard-panel-card-body" id="dashboard-recent"></div>
                 </section>
-                <section class="dashboard-panel-card" data-panel-card="highlights">
-                  <header class="dashboard-panel-card-header"><i data-lucide="sparkles"></i><span>ハイライトフィード</span></header>
+                <section class="dashboard-panel-card" data-panel-card="highlights" aria-labelledby="highlights-heading">
+                  <header class="dashboard-panel-card-header"><h3 id="highlights-heading"><i data-lucide="sparkles"></i><span>ハイライトフィード</span></h3></header>
                   <div class="dashboard-panel-card-body" id="dashboard-highlights"></div>
                 </section>
               </div>
@@ -766,19 +785,19 @@
           </div>
         </div>
       </section>
-      <section class="card" id="management-card">
+      <section class="card" id="management-card" aria-labelledby="management-heading" tabindex="-1">
         <div class="card-header">
           <h2><i data-lucide="users"></i>チーム管理 & 育成</h2>
           <select id="selTeamManage"></select>
         </div>
-        <div class="tabs">
+        <nav class="tabs" aria-label="チーム管理セクション">
           <button class="tab active" data-tab="roster">ロスター</button>
           <button class="tab" data-tab="training">育成</button>
           <button class="tab" data-tab="stats">個人成績</button>
           <button class="tab" data-tab="draft">ドラフト</button>
           <button class="tab" data-tab="front">フロント</button>
           <button class="tab" data-tab="report">育成レポート</button>
-        </div>
+        </nav>
         <div id="management-content" class="card-content"></div>
       </section>
     </main>
@@ -904,6 +923,7 @@
   }
 </script>
 <script type="module">
+import { focusTrap } from './src/utils/accessibility.js';
 import { logUserAction } from './src/utils/action_logger.js';
 import LeagueRules from './src/core/rules.js';
 import { getAllRulesets, getRulesetById } from './src/rulesets.js';
@@ -993,6 +1013,7 @@ import {
   evaluateProspectBase
 } from './src/systems/draft_simulation.js';
 // ====== Helpers & State ======
+let activeFocusTrap = null;
 const $=(s)=>document.querySelector(s); const $$=(s)=>[...document.querySelectorAll(s)];
 const refreshIcons = () => { if (window.lucide) { window.lucide.createIcons(); } };
 function resolveTarget(target, fallback){
@@ -5525,10 +5546,16 @@ function showPlayerDetailModal(pid, tid) {
     body.append(statsContainer, chartContainer);
 
     modal.style.display = 'flex';
+    if (activeFocusTrap) activeFocusTrap();
+    activeFocusTrap = focusTrap(modal);
     refreshIcons();
 }
 
 function hidePlayerDetailModal() {
+    if (activeFocusTrap) {
+        activeFocusTrap();
+        activeFocusTrap = null;
+    }
     $('#playerDetailModal').style.display = 'none';
     playSound('C3', '16n');
 }
@@ -5743,6 +5770,8 @@ function showGameRecapModal(ref) {
     body.append(grid);
 
     modal.style.display = 'flex';
+    if (activeFocusTrap) activeFocusTrap();
+    activeFocusTrap = focusTrap(modal);
     modal.dataset.gameKey = key;
     refreshIcons();
 }
@@ -5757,10 +5786,16 @@ function showFinanceModal(config = {}) {
     const content = typeof config.render === 'function' ? config.render(body) : config.content;
     if (content) body.append(content);
     modal.style.display = 'flex';
+    if (activeFocusTrap) activeFocusTrap();
+    activeFocusTrap = focusTrap(modal);
     refreshIcons();
 }
 
 function hideFinanceModal() {
+    if (activeFocusTrap) {
+        activeFocusTrap();
+        activeFocusTrap = null;
+    }
     const modal = $('#financeModal');
     if (modal) modal.style.display = 'none';
 }
@@ -5947,6 +5982,10 @@ function openLedgerModal(tid) {
 }
 
 function hideGameRecapModal() {
+    if (activeFocusTrap) {
+        activeFocusTrap();
+        activeFocusTrap = null;
+    }
     const modal = $('#gameRecapModal');
     if (modal) {
         modal.style.display = 'none';
@@ -5988,11 +6027,17 @@ function showRosterViolationModal(compliance){
 
   body.append(banner, el('p',{class:'mini'},'対象選手を二軍へ移すか、外国人選手の構成を見直してください。'), fixBtn);
   modal.style.display='flex';
+  if (activeFocusTrap) activeFocusTrap();
+  activeFocusTrap = focusTrap(modal);
   modal.dataset.teamId=String(compliance?.teamId ?? '');
   refreshIcons();
 }
 
 function hideRosterViolationModal(){
+  if (activeFocusTrap) {
+      activeFocusTrap();
+      activeFocusTrap = null;
+  }
   const modal=$('#rosterViolationModal');
   if(modal) modal.style.display='none';
 }
@@ -6072,10 +6117,19 @@ function showScoutReportModal(prospect, tid){
   }
 
   modal.style.display='flex';
+  if (activeFocusTrap) activeFocusTrap();
+  activeFocusTrap = focusTrap(modal);
   refreshIcons();
 }
 
-function hideScoutReportModal(){ const modal=$('#scoutReportModal'); if(modal) modal.style.display='none'; }
+function hideScoutReportModal(){
+  if (activeFocusTrap) {
+      activeFocusTrap();
+      activeFocusTrap = null;
+  }
+  const modal=$('#scoutReportModal');
+  if(modal) modal.style.display='none';
+}
 
 function showNarrativeLogModal(tid = State.userTeamId ?? 0){
   ensureNarrativeState();
@@ -6116,10 +6170,19 @@ function showNarrativeLogModal(tid = State.userTeamId ?? 0){
   }
   modal.dataset.tid = String(tid);
   modal.style.display='flex';
+  if (activeFocusTrap) activeFocusTrap();
+  activeFocusTrap = focusTrap(modal);
   refreshIcons();
 }
 
-function hideNarrativeLogModal(){ const modal=$('#narrativeLogModal'); if(modal) modal.style.display='none'; }
+function hideNarrativeLogModal(){
+  if (activeFocusTrap) {
+      activeFocusTrap();
+      activeFocusTrap = null;
+  }
+  const modal=$('#narrativeLogModal');
+  if(modal) modal.style.display='none';
+}
 
 
 function renderStandings(target){ const host=resolveTarget(target,'#standings'); if(!host) return; const st=computeStandings(State.teams, State.results||[], State.league.rules); const leagues=["Central","Pacific"]; const container=document.createDocumentFragment();
@@ -9149,6 +9212,37 @@ $$('#dashboard-tabs .dashboard-tab').forEach(btn=>{
           if ($('#scoutReportModal').style.display === 'flex') hideScoutReportModal();
           if ($('#narrativeLogModal').style.display === 'flex') hideNarrativeLogModal();
           if ($('#rosterViolationModal').style.display === 'flex') hideRosterViolationModal();
+          return; // Prevent other handlers when closing a modal
+      }
+
+      // Skip-link / Landmark navigation shortcuts
+      const focusableSections = [
+        '#skip-target-progression',
+        '#skip-target-settings',
+        '#skip-target-user-settings',
+        '#dashboard-overview-card',
+        '#dashboard-panels-card',
+        '#management-card'
+      ];
+
+      if(e.ctrlKey || e.metaKey){
+        const num = parseInt(e.key, 10);
+        if(num >= 1 && num <= focusableSections.length){
+          e.preventDefault();
+          const target = $(focusableSections[num-1]);
+          if(target) target.focus();
+        }
+      }
+
+      if(e.key === 'Home'){
+        e.preventDefault();
+        const firstSidebarCard = $('.sidebar > .card');
+        if(firstSidebarCard) firstSidebarCard.focus();
+      }
+      if(e.key === 'End'){
+        e.preventDefault();
+        const mainCards = $$('.main > .card');
+        if(mainCards.length > 0) mainCards[mainCards.length-1].focus();
       }
   });
 
