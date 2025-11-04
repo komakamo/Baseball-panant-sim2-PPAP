@@ -87,21 +87,34 @@ function setupEventListeners() {
       log('Game state not ready for forcing events.');
       return;
     }
-    const tid = Game.State.userTeamId ?? 0;
-    const teamName = Game.id2name(tid);
-    const event = {
-      teamId: tid,
-      title: 'デバッグイベント',
-      summary: `${teamName}でデバッグ用のイベントが強制発火されました。`,
-      detail: 'これはテスト目的のイベントで、チームの士気が少し上昇します。',
-      effects: { morale: 5 },
-      icon: 'bug',
-      tag: 'DEBUG',
-    };
-    log(`Forcing narrative event for ${teamName}...`);
-    Game.applyNarrativeEvent(event);
-    Game.updateAll();
   });
+
+  const toggleButton = $('#debug-panel-toggle');
+  const panel = $('#debug-panel');
+  if (toggleButton && panel) {
+    const togglePanel = (doSave = true) => {
+      const isCollapsed = panel.classList.toggle('collapsed');
+      const isExpanded = !isCollapsed;
+      toggleButton.setAttribute('aria-expanded', isExpanded);
+      toggleButton.setAttribute('aria-label', isExpanded ? 'デバッグパネルを閉じる' : 'デバッグパネルを開く');
+      if (doSave) {
+        localStorage.setItem('debugPanelCollapsed', isCollapsed);
+      }
+    };
+
+    toggleButton.addEventListener('click', () => togglePanel());
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !panel.classList.contains('collapsed')) {
+        togglePanel();
+      }
+    });
+
+    // Restore state from LocalStorage
+    if (localStorage.getItem('debugPanelCollapsed') === 'true') {
+      togglePanel(false);
+    }
+  }
 }
 
 /**
