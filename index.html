@@ -952,6 +952,15 @@ import createFacilitiesView from './src/ui/views/FacilitiesView.js';
 import createFinanceView from './src/ui/views/FinanceView.js';
 import { ensureTeamFans as ensureTeamFansState } from './src/systems/fans.js';
 import { ensureSponsorDeals as ensureSponsorDealsState } from './src/systems/sponsors.js';
+import {
+  chooseBestProspectForTeam as chooseBestProspectForTeamLogic,
+  autoDraftStep as autoDraftStepLogic,
+  autoUntilUserTurn as autoUntilUserTurnLogic,
+  getNextDraftActor,
+  evaluateProspectForTeam,
+  prospectNeedBucket,
+  evaluateProspectBase
+} from './src/systems/draft_simulation.js';
 // ====== Helpers & State ======
 const $=(s)=>document.querySelector(s); const $$=(s)=>[...document.querySelectorAll(s)];
 const refreshIcons = () => { if (window.lucide) { window.lucide.createIcons(); } };
@@ -8688,110 +8697,74 @@ function applyDraftSelection(team_id, prospect, selection){
   updateTeamNeeds(team_id);
   return true;
 }
-function completeDraftSelection(team_id, selectionResult){
-  if(!selectionResult) return false;
-  const { prospect, selection } = selectionResult;
-  const applied = applyDraftSelection(team_id, prospect, selection);
-  if(applied) save();
-  return applied;
+function completeDraftSelection(team_id, selectionResult) {
+    if (!selectionResult) return false;
+    const { prospect, selection } = selectionResult;
+    const applied = applyDraftSelection(team_id, prospect, selection);
+    if (applied) save();
+    return applied;
 }
-function chooseBestProspectForTeam(){
-  const draft=ensureDraft();
-  const pool=draft.pool||[];
-  let best=null, bestScore=-Infinity;
-  for(const prospect of pool){
-    const score=evaluateProspectForTeam(prospect, teamId)+Math.random()*3;
-    if(score>bestScore){ bestScore=score; best=prospect; }
-  }
-  return best;
+
+function chooseBestProspectForTeam(teamId) {
+    return chooseBestProspectForTeamLogic(teamId, State, {
+        evaluateProspectForTeam: (p, tid) => evaluateProspectForTeam(p, tid, State, { ensureProspectStructure, ensureTeamNeedsAll, clamp }),
+        ensureProspectStructure,
+        ensureTeamNeedsAll,
+        clamp,
+    });
 }
-function getNextDraftActor(){
-  const draft=ensureDraft();
-  if(draft.round===1){
-    const pending=getDraftPendingTeams(State);
-    return pending.length>0?pending[0]:null;
-  }
-  return getDraftOnClockTeamId(State);
+
+function processFirstRoundResolution() {
+    const result = resolveDraftFirstRound(State, { random: Math.random, onLog: handleDraftEvent });
+    result.winners.forEach(entry => {
+        completeDraftSelection(entry.teamId, { prospect: entry.prospect, selection: entry.selection });
+    });
+    return result;
 }
-function processFirstRoundResolution(){
-  const result=resolveDraftFirstRound(State,{ random:Math.random, onLog:handleDraftEvent });
-  result.winners.forEach(entry=>{
-    completeDraftSelection(entry.teamId,{ prospect:entry.prospect, selection:entry.selection });
-  });
-  return result;
-}
-function checkDraftCompletion(){
-  const draft=ensureDraft();
-  if(isDraftComplete(State) && !draft.completed){
-    State.devLogs.push('ドラフト完了');
-    draft.active=false;
-    draft.completed=true;
-    save();
-    return true;
-  }
-  return false;
-}
-function autoDraftStep(stopTeamId){
-  ensureDraft();
-  if(!State.draft.active) return false;
-  if(isDraftComplete(State)){
-    checkDraftCompletion();
-    return false;
-  }
-  if(State.draft.round===1){
-    if(shouldResolveDraftFirstRound(State)){
-      const result=processFirstRoundResolution();
-      checkDraftCompletion();
-      return result.winners.length>0;
+
+function checkDraftCompletion() {
+    const draft = ensureDraft();
+    if (isDraftComplete(State) && !draft.completed) {
+        State.devLogs.push('ドラフト完了');
+        draft.active = false;
+        draft.completed = true;
+        save();
+        return true;
     }
-    const pending=getDraftPendingTeams(State);
-    if(pending.length===0) return false;
-    const teamId=pending[0];
-    if(stopTeamId!=null && !State.commissioner && teamId===stopTeamId) return false;
-    const best=chooseBestProspectForTeam(teamId);
-    if(!best) return false;
-    submitDraftBid(State, teamId, best.pid);
-    save();
-    if(shouldResolveDraftFirstRound(State)){
-      processFirstRoundResolution();
-      checkDraftCompletion();
-    }
-    return true;
-  }
-  const teamId=getDraftOnClockTeamId(State);
-  if(teamId==null){
-    checkDraftCompletion();
     return false;
-  }
-  if(stopTeamId!=null && !State.commissioner && teamId===stopTeamId) return false;
-  const best=chooseBestProspectForTeam(teamId);
-  if(!best){
-    checkDraftCompletion();
-    return false;
-  }
-  const result=selectDraftProspect(State, teamId, best.pid,{ onLog:handleDraftEvent });
-  if(result){
-    completeDraftSelection(teamId, result);
-    checkDraftCompletion();
-    return true;
-  }
-  return false;
 }
-function autoUntilUserTurn(userTid){
-  let safety=1000;
-  while(State.draft.active && !isDraftComplete(State) && safety-->0){
-    const next=getNextDraftActor();
-    if(next==null){
-      if(State.draft.round===1 && shouldResolveDraftFirstRound(State)){
-        processFirstRoundResolution();
-        checkDraftCompletion();
-        continue;
-      }
-      break;
-    }
-    if(!State.commissioner && next===userTid) break;
-    if(!autoDraftStep(userTid)) break;
-  }
+
+function autoDraftStep(stopTeamId) {
+    ensureDraft();
+    const dependencies = {
+        showToast,
+        chooseBestProspectForTeam: (tid) => chooseBestProspectForTeam(tid),
+        completeDraftSelection,
+        checkDraftCompletion,
+        handleDraftEvent,
+        evaluateProspectForTeam: (p, tid) => evaluateProspectForTeam(p, tid, State, { ensureProspectStructure, ensureTeamNeedsAll, clamp }),
+        ensureProspectStructure,
+        ensureTeamNeedsAll,
+        clamp
+    };
+    return autoDraftStepLogic(stopTeamId, State, dependencies);
+}
+
+function autoUntilUserTurn(userTid) {
+    ensureDraft();
+    const dependencies = {
+        showToast,
+        chooseBestProspectForTeam: (tid) => chooseBestProspectForTeam(tid),
+        completeDraftSelection,
+        checkDraftCompletion,
+        handleDraftEvent,
+        evaluateProspectForTeam: (p, tid) => evaluateProspectForTeam(p, tid, State, { ensureProspectStructure, ensureTeamNeedsAll, clamp }),
+        ensureProspectStructure,
+        ensureTeamNeedsAll,
+        clamp,
+        autoDraftStep: (stopTid) => autoDraftStep(stopTid),
+    };
+    autoUntilUserTurnLogic(userTid, State, dependencies);
 }
 
 // ====== Recompute & Render All ======
