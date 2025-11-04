@@ -1,3 +1,4 @@
+import { t } from '../../i18n/translator.js';
 import { TRIGGER_TYPES } from '../../systems/sponsors.js';
 
 const DEFAULT_SERIES_LENGTH = 12;
@@ -68,7 +69,7 @@ function computeAttendanceSeries(state, teamId, { computeAttendanceForGame, seri
   entries.sort((a, b) => a.day - b.day);
   const trimmed = entries.slice(-Math.max(2, seriesLength));
   const series = trimmed.map(entry => entry.attendance);
-  const labels = trimmed.map(entry => `Day ${entry.day}`);
+  const labels = trimmed.map(entry => t('finance.day').replace('{day}', entry.day));
   const total = series.reduce((sum, value) => sum + value, 0);
   const average = Math.round(total / series.length);
   const capacity = toNumber(finance.attendance?.capacity, 0);
@@ -89,23 +90,23 @@ function describeTriggerStatus(trigger, progress) {
   const triggeredMap = progress?.triggered || {};
   const triggered = !!triggeredMap[trigger.id];
   const threshold = toNumber(trigger.threshold, null);
-  let status = triggered ? '達成済み' : '未達成';
+  let status = triggered ? t('finance.sponsor.status.achieved') : t('finance.sponsor.status.incomplete');
 
   if (!triggered) {
     if (trigger.type === TRIGGER_TYPES.WINS && Number.isFinite(threshold)) {
       const wins = toNumber(metrics.wins, 0);
       const remaining = Math.max(0, threshold - wins);
-      status = remaining === 0 ? '条件達成待ち' : `あと${remaining}勝`;
+      status = remaining === 0 ? t('finance.sponsor.status.pending') : t('finance.sponsor.status.winsLeft').replace('{wins}', remaining);
     } else if (trigger.type === TRIGGER_TYPES.STAGE && trigger.stage) {
-      status = 'ステージ進出待ち';
+      status = t('finance.sponsor.status.stage');
     }
   }
 
   const label = trigger.description || (() => {
-    if (trigger.type === TRIGGER_TYPES.WINS) return `${threshold ?? '?'}勝ボーナス`;
-    if (trigger.type === TRIGGER_TYPES.STAGE) return 'ステージボーナス';
-    if (trigger.type === TRIGGER_TYPES.STAT) return '成績ボーナス';
-    return 'ボーナス';
+    if (trigger.type === TRIGGER_TYPES.WINS) return t('finance.sponsor.bonus.wins').replace('{wins}', threshold ?? '?');
+    if (trigger.type === TRIGGER_TYPES.STAGE) return t('finance.sponsor.bonus.stage');
+    if (trigger.type === TRIGGER_TYPES.STAT) return t('finance.sponsor.bonus.stat');
+    return t('finance.sponsor.bonus.generic');
   })();
 
   return {
@@ -147,9 +148,9 @@ export function createFinanceView({
     if (!finance) {
       return createElement('section', { class: 'front-office-card' },
         createElement('div', { class: 'front-office-card-header' },
-          createElement('h3', {}, createElement('i', { 'data-lucide': 'ticket', class: 'mini-icon' }), 'チケット収益')
+          createElement('h3', {}, createElement('i', { 'data-lucide': 'ticket', class: 'mini-icon' }), t('finance.ticket.title'))
         ),
-        createElement('div', { class: 'front-office-empty mini' }, '財務データが見つかりません。')
+        createElement('div', { class: 'front-office-empty mini' }, t('finance.data.notFound'))
       );
     }
 
@@ -167,7 +168,7 @@ export function createFinanceView({
       createElement('div', { class: 'front-office-card-header' },
         createElement('h3', {},
           createElement('i', { 'data-lucide': 'ticket', class: 'mini-icon' }),
-          'チケット収益'
+          t('finance.ticket.title')
         ),
         createElement('span', { class: 'pill' }, millionFormatter(revenue))
       )
@@ -175,29 +176,29 @@ export function createFinanceView({
 
     card.append(
       createElement('div', { class: 'finance-stat' },
-        createElement('span', {}, '平均入場者'),
-        createElement('strong', {}, `${yenFormatter.format(avgAttendance)} 人`)
+        createElement('span', {}, t('finance.stat.avgAttendance')),
+        createElement('strong', { innerHTML: `${yenFormatter.format(avgAttendance)} ${t('unit.person')}` })
       ),
       createElement('div', { class: 'finance-stat' },
-        createElement('span', {}, '平均単価'),
+        createElement('span', {}, t('finance.stat.avgTicketPrice')),
         createElement('strong', {}, formatYen(ticketPrice))
       ),
       createElement('div', { class: 'finance-stat' },
-        createElement('span', {}, '試合平均収入'),
+        createElement('span', {}, t('finance.stat.avgRevenuePerGame')),
         createElement('strong', {}, millionFormatter(perGame))
       ),
       createElement('div', { class: 'finance-stat' },
-        createElement('span', {}, 'ファン規模'),
-        createElement('strong', {}, `${yenFormatter.format(fanSize)} 人`)
+        createElement('span', {}, t('finance.stat.fanSize')),
+        createElement('strong', { innerHTML: `${yenFormatter.format(fanSize)} ${t('unit.person')}` })
       )
     );
 
     if (happiness != null || loyalty != null) {
       const meta = createElement('div', { class: 'mini', style: 'color:var(--text-secondary);' });
       const parts = [];
-      if (happiness != null) parts.push(`幸福度 ${happiness}`);
-      if (loyalty != null) parts.push(`ロイヤルティ ${loyalty}`);
-      if (parts.length) meta.append(parts.join(' ／ '));
+      if (happiness != null) parts.push(t('finance.stat.fan.happiness').replace('{value}', happiness));
+      if (loyalty != null) parts.push(t('finance.stat.fan.loyalty').replace('{value}', loyalty));
+      if (parts.length) meta.append(parts.join(t('common.separator')));
       card.append(meta);
     }
 
@@ -213,16 +214,16 @@ export function createFinanceView({
       createElement('div', { class: 'front-office-card-header' },
         createElement('h3', {},
           createElement('i', { 'data-lucide': 'line-chart', class: 'mini-icon' }),
-          '観客トレンド (AS以降)'
+          t('finance.attendance.title')
         ),
-        createElement('span', { class: 'pill' }, `${yenFormatter.format(trend.average || finance.attendance?.average || 0)} 人`)
+        createElement('span', { class: 'pill' }, t('finance.attendance.avg').replace('{avg}', yenFormatter.format(trend.average || finance.attendance?.average || 0)))
       )
     );
 
     if (trend.series.length >= 2) {
       let chartNode = null;
       if (typeof createSparklineWithTooltip === 'function') {
-        chartNode = createSparklineWithTooltip(trend.series, trend.labels, 'var(--primary)', 220, 44, value => `${yenFormatter.format(Math.round(value))} 人`);
+        chartNode = createSparklineWithTooltip(trend.series, trend.labels, 'var(--primary)', 220, 44, value => t('finance.attendance.sparkline.tooltip').replace('{value}', yenFormatter.format(Math.round(value))));
       } else if (typeof createSparklineSVG === 'function') {
         chartNode = createSparklineSVG(trend.series, 'var(--primary)', 220, 44);
       }
@@ -230,17 +231,17 @@ export function createFinanceView({
         card.append(createElement('div', { class: 'mini', style: 'display:flex;flex-direction:column;gap:8px;' }, chartNode));
       }
     } else {
-      card.append(createElement('div', { class: 'front-office-empty mini' }, 'AS以降の主催試合データが不足しています。'));
+      card.append(createElement('div', { class: 'front-office-empty mini' }, t('finance.attendance.empty')));
     }
 
     const fillRate = trend.fillRate != null ? formatPercent(trend.fillRate) : '—';
     card.append(
       createElement('div', { class: 'finance-stat' },
-        createElement('span', {}, '最新動員'),
-        createElement('strong', {}, `${yenFormatter.format(trend.latest ?? finance.attendance?.lastGame ?? 0)} 人`)
+        createElement('span', {}, t('finance.stat.latestAttendance')),
+        createElement('strong', { html: `${yenFormatter.format(trend.latest ?? finance.attendance?.lastGame ?? 0)} ${t('unit.person')}` })
       ),
       createElement('div', { class: 'finance-stat' },
-        createElement('span', {}, '収容率'),
+        createElement('span', {}, t('finance.stat.fillRate')),
         createElement('strong', {}, fillRate)
       )
     );
@@ -256,14 +257,14 @@ export function createFinanceView({
       createElement('div', { class: 'front-office-card-header' },
         createElement('h3', {},
           createElement('i', { 'data-lucide': 'handshake', class: 'mini-icon' }),
-          'スポンサー進捗'
+          t('finance.sponsor.title')
         ),
-        createElement('span', { class: 'pill' }, deals.length ? `${deals.length} 件` : '契約未設定')
+        createElement('span', { class: 'pill' }, deals.length ? t('finance.sponsor.count').replace('{count}', deals.length) : t('finance.sponsor.none'))
       )
     );
 
     if (!deals.length) {
-      card.append(createElement('div', { class: 'front-office-empty mini' }, '進行中のスポンサー契約がありません。'));
+      card.append(createElement('div', { class: 'front-office-empty mini' }, t('finance.sponsor.empty')));
       return card;
     }
 
@@ -273,8 +274,8 @@ export function createFinanceView({
       const dealBlock = createElement('article', { class: 'finance-sponsor-entry' });
       dealBlock.append(
         createElement('h4', { class: 'mini', style: 'margin:0;display:flex;justify-content:space-between;gap:8px;' },
-          createElement('span', {}, deal.name || 'スポンサー契約'),
-          createElement('span', { class: `pill ${baseAwarded ? 'positive' : ''}` }, baseAwarded ? '基本保証受領済み' : '基本保証未受領')
+          createElement('span', {}, deal.name || t('finance.sponsor.name')),
+          createElement('span', { class: `pill ${baseAwarded ? 'positive' : ''}` }, baseAwarded ? t('finance.sponsor.base.received') : t('finance.sponsor.base.pending'))
         )
       );
 
@@ -285,7 +286,7 @@ export function createFinanceView({
       if (toNumber(deal.base?.amount, 0) > 0) {
         dealBlock.append(
           createElement('div', { class: 'finance-stat' },
-            createElement('span', {}, '基本保証'),
+            createElement('span', {}, t('finance.sponsor.base.guarantee')),
             createElement('strong', {}, formatYen(deal.base.amount))
           )
         );

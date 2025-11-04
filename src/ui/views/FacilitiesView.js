@@ -1,3 +1,5 @@
+import { t } from '../../i18n/translator.js';
+
 export function createFacilitiesView({
   createElement = (tag, attrs = {}, ...children) => {
     const node = document.createElement(tag);
@@ -40,22 +42,22 @@ export function createFacilitiesView({
     {
       key: 'gym',
       icon: 'dumbbell',
-      label: 'トレーニングジム',
-      description: 'パワー・球威・体力の成長効率を高めます。',
+      label: t('facilities.gym.label'),
+      description: t('facilities.gym.description'),
       max: 5,
     },
     {
       key: 'video',
       icon: 'clapperboard',
-      label: 'ビデオ・ラボ',
-      description: '映像分析で打撃精度・コマンドなどの伸びを後押しします。',
+      label: t('facilities.video.label'),
+      description: t('facilities.video.description'),
       max: 5,
     },
     {
       key: 'medical',
       icon: 'stethoscope',
-      label: 'メディカルセンター',
-      description: '回復力と故障耐性を底上げします。',
+      label: t('facilities.medical.label'),
+      description: t('facilities.medical.description'),
       max: 5,
     },
   ];
@@ -84,15 +86,15 @@ export function createFacilitiesView({
     const current = Number(facilities?.[type.key]) || 0;
     const next = Math.max(0, Math.min(type.max, Math.floor(nextLevel)));
     if (next === current) {
-      controls.valueLabel.textContent = `Lv${current}`;
+      controls.valueLabel.textContent = t('facilities.level').replace('{level}', current);
       return;
     }
 
     if (next < current) {
       if (controls.slider) controls.slider.value = current;
-      controls.valueLabel.textContent = `Lv${current}`;
+      controls.valueLabel.textContent = t('facilities.level').replace('{level}', current);
       if (typeof showToast === 'function') {
-        showToast('施設レベルの減少はできません。', { type: 'warning', duration: 3600 });
+        showToast(t('toast.facilities.downgrade.disabled'), { type: 'warning', duration: 3600 });
       }
       return;
     }
@@ -101,11 +103,11 @@ export function createFacilitiesView({
     const available = Number(meta.dp) || 0;
     if (required > available) {
       if (controls.slider) controls.slider.value = current;
-      controls.valueLabel.textContent = `Lv${current}`;
+      controls.valueLabel.textContent = t('facilities.level').replace('{level}', current);
       if (typeof showToast === 'function') {
-        showToast('Devポイントが不足しています。', {
+        showToast(t('toast.facilities.dp.insufficient'), {
           type: 'error',
-          description: `必要: ${required}pt ／ 所持: ${available}pt`,
+          description: t('toast.facilities.dp.insufficient.desc').replace('{required}', required).replace('{available}', available),
           duration: 4200,
         });
       }
@@ -120,10 +122,15 @@ export function createFacilitiesView({
     meta.facilities = facilities;
     updateTeamFacilities(teamId, facilities);
     ensureDevLog(state);
-    state.devLogs.push(`[${id2name(teamId)}] 施設強化: ${type.label} Lv${current}→Lv${next} (消費${required}pt)`);
-    controls.valueLabel.textContent = `Lv${next}`;
+    state.devLogs.push(t('log.facilities.upgrade')
+      .replace('{team}', id2name(teamId))
+      .replace('{facility}', type.label)
+      .replace('{from}', current)
+      .replace('{to}', next)
+      .replace('{cost}', required));
+    controls.valueLabel.textContent = t('facilities.level').replace('{level}', next);
     if (controls.dpLabel) {
-      controls.dpLabel.textContent = `Devポイント ${meta.dp}pt`;
+      controls.dpLabel.textContent = t('facilities.devPoints').replace('{dp}', meta.dp);
     }
     saveAndRerender();
   }
@@ -133,18 +140,18 @@ export function createFacilitiesView({
     const parts = [];
     if (adjustments.growth) {
       const { battingPower, battingPrecision, pitchingPower, pitchingCommand } = adjustments.growth;
-      if (battingPower != null) parts.push(`打撃パワー +${((battingPower - 1) * 100).toFixed(1)}%`);
-      if (battingPrecision != null) parts.push(`打撃精度 +${((battingPrecision - 1) * 100).toFixed(1)}%`);
-      if (pitchingPower != null) parts.push(`球威 +${((pitchingPower - 1) * 100).toFixed(1)}%`);
-      if (pitchingCommand != null) parts.push(`コマンド +${((pitchingCommand - 1) * 100).toFixed(1)}%`);
+      if (battingPower != null) parts.push(t('effects.battingPower').replace('{value}', ((battingPower - 1) * 100).toFixed(1)));
+      if (battingPrecision != null) parts.push(t('effects.battingPrecision').replace('{value}', ((battingPrecision - 1) * 100).toFixed(1)));
+      if (pitchingPower != null) parts.push(t('effects.pitchingPower').replace('{value}', ((pitchingPower - 1) * 100).toFixed(1)));
+      if (pitchingCommand != null) parts.push(t('effects.pitchingCommand').replace('{value}', ((pitchingCommand - 1) * 100).toFixed(1)));
     }
     if (adjustments.recovery) {
       const { flat, mult } = adjustments.recovery;
-      if (flat) parts.push(`週回復 +${flat.toFixed(1)}`);
-      if (mult && mult !== 1) parts.push(`疲労回復倍率 +${((mult - 1) * 100).toFixed(1)}%`);
+      if (flat) parts.push(t('effects.weeklyRecovery').replace('{value}', flat.toFixed(1)));
+      if (mult && mult !== 1) parts.push(t('effects.fatigueRecovery').replace('{value}', ((mult - 1) * 100).toFixed(1)));
     }
     if (adjustments.injuryRate != null) {
-      parts.push(`故障率 ${Math.round((1 - adjustments.injuryRate) * 100)}%軽減`);
+      parts.push(t('effects.injuryRate').replace('{value}', Math.round((1 - adjustments.injuryRate) * 100)));
     }
     return parts.filter(Boolean);
   }
@@ -175,7 +182,7 @@ export function createFacilitiesView({
           createElement('strong', { text: type.label })
         )
       ),
-      createElement('span', { class: 'facility-slider-value', text: `Lv${level}` })
+      createElement('span', { class: 'facility-slider-value', text: t('facilities.level').replace('{level}', level) })
     );
     const description = createElement('div', { class: 'facility-slider-meta', text: type.description });
     const effects = createElement('ul', { class: 'facility-slider-effects' });
@@ -184,7 +191,7 @@ export function createFacilitiesView({
       const effectList = describeAdjustments({ ...facilities, [type.key]: value });
       effects.innerHTML = '';
       if (!effectList.length) {
-        effects.append(createElement('li', { text: '効果データを計算できません。' }));
+        effects.append(createElement('li', { text: t('effects.calculation.error') }));
         return;
       }
       effectList.forEach(item => {
@@ -214,7 +221,7 @@ export function createFacilitiesView({
       if (value < level) {
         value = level;
         slider.value = level;
-        slider.title = '施設のダウングレードはできません。';
+        slider.title = t('tooltip.facilities.downgrade.disabled');
       } else {
         slider.title = '';
       }
@@ -222,17 +229,17 @@ export function createFacilitiesView({
       const maxAffordable = findMaxAffordableLevel(level, type.max, dp);
       if (value > maxAffordable) {
         slider.classList.add('warn');
-        slider.title = `DPが不足しています。\n最大Lv${maxAffordable}まで強化可能です。`;
+        slider.title = t('tooltip.facilities.dp.insufficient').replace('{max}', maxAffordable);
       } else {
         slider.classList.remove('warn');
         if (value < level) {
-          slider.title = '施設のダウングレードはできません。';
+          slider.title = t('tooltip.facilities.downgrade.disabled');
         } else {
           slider.title = '';
         }
       }
 
-      controlRefs.valueLabel.textContent = `Lv${value}`;
+      controlRefs.valueLabel.textContent = t('facilities.level').replace('{level}', value);
       updateEffectPreview(value);
     };
     slider.onchange = () => {
@@ -242,7 +249,7 @@ export function createFacilitiesView({
         value = maxAffordable;
         slider.value = maxAffordable;
         if (typeof showToast === 'function') {
-          showToast(`DPが不足しているため、Lv${maxAffordable}に設定しました。`, { type: 'info', duration: 4200 });
+          showToast(t('toast.facilities.dp.insufficient.desc').replace('{required}', '').replace('{available}', maxAffordable), { type: 'info', duration: 4200 });
         }
       }
       applyFacilityLevel(state, context, type, value, controlRefs);
@@ -250,11 +257,11 @@ export function createFacilitiesView({
 
     row.append(header, description, slider, effects,
       createElement('div', { class: 'facility-slider-footer mini' },
-        createElement('span', { text: `最大Lv${type.max} ／ 1段階 ${20 + level * 10}pt〜` })
+        createElement('span', { text: `${t('facilities.maxLevel').replace('{max}', type.max)} ／ ${t('facilities.upgrade.cost').replace('{cost}', 20 + level * 10)}` })
       )
     );
     if (!canControl) {
-      slider.title = '自チーム以外は操作できません（コミッショナーモードで可）';
+      slider.title = t('tooltip.facilities.notUserTeam');
     }
     return row;
   }
@@ -263,7 +270,7 @@ export function createFacilitiesView({
     ensureTeamMeta();
     const meta = state.teamMeta?.[context.teamId];
     if (!meta) {
-      return createElement('div', { class: 'front-office-empty mini', text: 'チームメタ情報が見つかりません。' });
+      return createElement('div', { class: 'front-office-empty mini', text: t('facilities.teamMeta.notFound') });
     }
     const facilities = ensureTeamFacilities(meta, context.teamId);
     const dp = Number(meta.dp) || 0;
@@ -273,9 +280,9 @@ export function createFacilitiesView({
       createElement('div', { class: 'front-office-card-header' },
         createElement('h3', {},
           createElement('i', { 'data-lucide': 'factory', class: 'mini-icon' }),
-          '施設投資'
+          t('facilities.title')
         ),
-        createElement('span', { class: 'pill', text: `Devポイント ${dp}pt` })
+        createElement('span', { class: 'pill', text: t('facilities.devPoints').replace('{dp}', dp) })
       )
     );
 

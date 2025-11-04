@@ -1,0 +1,11 @@
+{
+  "@@metadata": {
+    "version": 1,
+    "description": "Japanese glossary for PennantSim Lite"
+  },
+  "round": "巡目",
+  "inning": "回",
+  "match": "試合",
+  "record": "戦績",
+  "draft": "ドラフト"
+}

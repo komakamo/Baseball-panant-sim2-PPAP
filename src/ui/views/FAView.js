@@ -1,3 +1,5 @@
+import { t } from '../../i18n/translator.js';
+
 export function createFAView({
   createElement = (tag, attrs = {}, ...children) => {
     const node = document.createElement(tag);
@@ -37,14 +39,14 @@ export function createFAView({
 
   function formatServiceStatus(metadata = {}) {
     const { serviceTime, threshold, eligible } = metadata;
-    if (serviceTime == null) return eligible ? 'FA権利あり' : '情報なし';
-    const formatted = `${Number(serviceTime).toFixed(1)}年`; // 1 decimal precision
-    if (eligible == null) return `${formatted}`;
-    if (eligible) return `${formatted} (権利保有)`;
+    if (serviceTime == null) return eligible ? t('fa.status.eligible') : t('fa.status.ineligible');
+    const formatted = t('contract.term.years').replace('{years}', Number(serviceTime).toFixed(1));
+    if (eligible == null) return formatted;
+    if (eligible) return `${formatted}${t('fa.status.hasRight')}`;
     const need = threshold != null ? Math.max(0, Number(threshold) - Number(serviceTime)) : null;
     return need != null
-      ? `${formatted} (あと${need.toFixed(1)}年で権利)`
-      : `${formatted}`;
+      ? `${formatted}${t('fa.status.yearsLeft').replace('{years}', need.toFixed(1))}`
+      : formatted;
   }
 
   function createRankBadge(rank) {
@@ -62,14 +64,12 @@ export function createFAView({
     return createElement('span', {
       class: 'pill',
       style: `font-size:11px;padding:2px 8px;border-radius:999px;background:${bgMap[value] || bgMap.C};color:${colorMap[value] || colorMap.C};border:none;`,
-      text: `ランク ${value}`,
+      text: t('fa.rank').replace('{rank}', value),
     });
   }
 
   function compensationOptionsText(rank) {
-    if (rank === 'A') return '人的補償＋金銭 または 金銭補償';
-    if (rank === 'B') return '人的補償 または 金銭補償';
-    return '金銭補償のみ';
+    return t(`fa.compensation.${rank.toUpperCase()}`) || t('fa.compensation.C');
   }
 
   function resolveMetadata(entry = {}, fallbackPlayer = null) {
@@ -90,7 +90,7 @@ export function createFAView({
   }
 
   function createStatusBadge(isProtected) {
-    const text = isProtected ? '保護' : '対象';
+    const text = isProtected ? t('fa.status.protected') : t('fa.status.exposed');
     const bg = isProtected ? 'rgba(0,168,243,0.18)' : 'rgba(239,68,68,0.18)';
     const color = isProtected ? 'var(--primary)' : 'var(--bad)';
     return createElement('span', {
@@ -109,11 +109,11 @@ export function createFAView({
 
     const table = createElement('table', { class: 'contract-table' },
       createElement('thead', {}, createElement('tr', {},
-        createElement('th', {}, '選手'),
-        createElement('th', {}, '守備/役割'),
-        createElement('th', {}, '総合'),
-        createElement('th', {}, '状態'),
-        createElement('th', {}, '操作'),
+        createElement('th', {}, t('fa.table.header.player')),
+        createElement('th', {}, t('fa.table.header.pos_role')),
+        createElement('th', {}, t('fa.table.header.overall')),
+        createElement('th', {}, t('fa.table.header.status')),
+        createElement('th', {}, t('fa.table.header.actions')),
       )),
       createElement('tbody')
     );
@@ -121,7 +121,10 @@ export function createFAView({
     const limitNotice = createElement('div', {
       class: 'mini',
       style: `color:${protectedList.length >= PROTECT_LIMIT ? 'var(--bad)' : 'var(--text-secondary)'};margin-bottom:4px;`,
-      text: `保護枠 ${protectedList.length}/${PROTECT_LIMIT} (${Math.max(0, PROTECT_LIMIT - protectedList.length)}名枠あり)`
+      text: t('fa.protected.limit.note')
+        .replace('{count}', protectedList.length)
+        .replace('{limit}', PROTECT_LIMIT)
+        .replace('{remaining}', Math.max(0, PROTECT_LIMIT - protectedList.length))
     });
 
     players.forEach(player => {
@@ -147,7 +150,7 @@ export function createFAView({
               checkbox.checked = false;
               if (limitNotice) {
                 limitNotice.style.color = 'var(--bad)';
-                limitNotice.textContent = `保護枠は${PROTECT_LIMIT}名までです (満員)`;
+                limitNotice.textContent = t('fa.protected.limit.full').replace('{limit}', PROTECT_LIMIT);
               }
               return;
             }
@@ -162,7 +165,7 @@ export function createFAView({
       }
 
       row.append(
-        createElement('td', { style: 'text-align:left;white-space:normal;' }, document.createTextNode(player.name || '不明')),
+        createElement('td', { style: 'text-align:left;white-space:normal;' }, document.createTextNode(player.name || t('prospect.unknown'))),
         createElement('td', {}, player.pos || player.role || '-'),
         createElement('td', {}, Math.round(getOverall(player))),
         createElement('td', {}, createStatusBadge(isProtected)),
@@ -176,8 +179,8 @@ export function createFAView({
       class: 'mini',
       style: 'color:var(--text-secondary);margin-top:6px;white-space:normal;line-height:1.5;',
       text: exposed.length
-        ? `対象選手 (${exposed.length}): ${exposed.map(p => p.name).join(' / ')}`
-        : '対象選手はいません。'
+        ? t('fa.exposed.list.title').replace('{count}', exposed.length).replace('{players}', exposed.map(p => p.name).join(' / '))
+        : t('fa.exposed.list.empty')
     });
 
     const wrapper = createElement('div', { style: 'display:flex;flex-direction:column;gap:8px;' },
@@ -191,7 +194,7 @@ export function createFAView({
   function createPreferenceControls(entries, context) {
     const { teamId, canControl, season } = context;
     if (!entries.length) {
-      return createElement('div', { class: 'mini', style: 'color:var(--text-secondary);' }, '放出予定のFA選手はいません。');
+      return createElement('div', { class: 'mini', style: 'color:var(--text-secondary);' }, t('fa.outgoing.empty'));
     }
     const list = createElement('div', { style: 'display:flex;flex-direction:column;gap:12px;' });
     entries.forEach(entry => {
@@ -199,7 +202,7 @@ export function createFAView({
         style: 'border:1px solid var(--card-border);border-radius:10px;padding:12px;background:rgba(248,250,252,0.9);display:flex;flex-direction:column;gap:8px;'
       });
       const header = createElement('div', { style: 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;' },
-        createElement('strong', {}, entry.playerName || '不明'),
+        createElement('strong', {}, entry.playerName || t('prospect.unknown')),
         createRankBadge(entry.rank),
         createElement('span', { class: 'mini', style: 'color:var(--text-secondary);' }, formatServiceStatus(entry))
       );
@@ -208,7 +211,7 @@ export function createFAView({
       const optionsText = createElement('div', {
         class: 'mini',
         style: 'color:var(--text-secondary);',
-        text: `補償選択肢: ${compensationOptionsText(entry.rank)}`
+        text: t('fa.compensation.options.title').replace('{options}', compensationOptionsText(entry.rank))
       });
       wrapper.append(optionsText);
 
@@ -256,18 +259,18 @@ export function createFAView({
       }
 
       controls.append(
-        createElement('label', { style: 'display:inline-flex;align-items:center;gap:6px;' }, radioPlayer, document.createTextNode('人的補償')),
-        createElement('label', { style: 'display:inline-flex;align-items:center;gap:6px;' }, radioCash, document.createTextNode('金銭補償'))
+        createElement('label', { style: 'display:inline-flex;align-items:center;gap:6px;' }, radioPlayer, document.createTextNode(t('fa.compensation.player'))),
+        createElement('label', { style: 'display:inline-flex;align-items:center;gap:6px;' }, radioCash, document.createTextNode(t('fa.compensation.cash')))
       );
       wrapper.append(controls);
 
       if (entry.compensation) {
         const detail = entry.compensation.type === 'player'
-          ? `補償で${entry.compensation.playerName || '選手'}を獲得`
+          ? t('fa.compensation.result.player').replace('{name}', entry.compensation.playerName || t('prospects.table.header.name'))
           : entry.compensation.type === 'cash'
-            ? `補償金 ${millionFormatter(entry.compensation.amount || 0)}`
+            ? t('fa.compensation.result.cash').replace('{amount}', millionFormatter(entry.compensation.amount || 0))
             : entry.compensation.reason || entry.compensation.type;
-        wrapper.append(createElement('div', { class: 'mini', style: 'color:var(--primary);' }, `結果: ${detail}`));
+        wrapper.append(createElement('div', { class: 'mini', style: 'color:var(--primary);' }, t('fa.compensation.result.title').replace('{detail}', detail)));
       }
 
       list.append(wrapper);
@@ -277,16 +280,16 @@ export function createFAView({
 
   function createMarketTable(players, context) {
     if (!players.length) {
-      return createElement('div', { class: 'mini', style: 'color:var(--text-secondary);' }, '現在FA市場は空です。');
+      return createElement('div', { class: 'mini', style: 'color:var(--text-secondary);' }, t('fa.market.empty'));
     }
     const table = createElement('table', { class: 'contract-table' },
       createElement('thead', {}, createElement('tr', {},
-        createElement('th', {}, '選手'),
-        createElement('th', {}, '守備/役割'),
-        createElement('th', {}, '総合'),
-        createElement('th', {}, 'サービス'),
-        createElement('th', {}, 'ランク'),
-        createElement('th', {}, '補償'),
+        createElement('th', {}, t('fa.table.header.player')),
+        createElement('th', {}, t('fa.table.header.pos_role')),
+        createElement('th', {}, t('fa.table.header.overall')),
+        createElement('th', {}, t('fa.table.header.service')),
+        createElement('th', {}, t('fa.table.header.rank')),
+        createElement('th', {}, t('fa.table.header.compensation')),
       )),
       createElement('tbody')
     );
@@ -294,7 +297,7 @@ export function createFAView({
     players.forEach(({ player, metadata }) => {
       const row = createElement('tr');
       row.append(
-        createElement('td', { style: 'text-align:left;white-space:normal;' }, document.createTextNode(player.name || '不明')),
+        createElement('td', { style: 'text-align:left;white-space:normal;' }, document.createTextNode(player.name || t('prospect.unknown'))),
         createElement('td', {}, player.pos || player.role || '-'),
         createElement('td', {}, Math.round(getOverall(player))),
         createElement('td', {}, formatServiceStatus(metadata)),
@@ -362,7 +365,7 @@ export function createFAView({
       style: 'box-shadow:inset 0 2px 0 rgba(148,163,184,0.12);',
     });
     protectCard.append(
-      createElement('h3', {}, createElement('i', { 'data-lucide': 'shield', class: 'mini-icon' }), '28人プロテクト管理'),
+      createElement('h3', {}, createElement('i', { 'data-lucide': 'shield', class: 'mini-icon' }), t('fa.protect.title')),
       createProtectedTable(players, { ...context, faState })
     );
     wrapper.append(protectCard);
@@ -372,7 +375,7 @@ export function createFAView({
       style: 'box-shadow:inset 0 2px 0 rgba(148,163,184,0.12);',
     });
     preferenceCard.append(
-      createElement('h3', {}, createElement('i', { 'data-lucide': 'scale', class: 'mini-icon' }), 'FA補償ポリシー'),
+      createElement('h3', {}, createElement('i', { 'data-lucide': 'scale', class: 'mini-icon' }), t('fa.policy.title')),
       createPreferenceControls(outgoingEntries, { ...context, faState })
     );
     wrapper.append(preferenceCard);
@@ -382,7 +385,7 @@ export function createFAView({
       style: 'box-shadow:inset 0 2px 0 rgba(148,163,184,0.12);',
     });
     marketCard.append(
-      createElement('h3', {}, createElement('i', { 'data-lucide': 'store', class: 'mini-icon' }), 'FA市場の概況'),
+      createElement('h3', {}, createElement('i', { 'data-lucide': 'store', class: 'mini-icon' }), t('fa.market.title')),
       createMarketTable(marketEntries, context)
     );
     wrapper.append(marketCard);
