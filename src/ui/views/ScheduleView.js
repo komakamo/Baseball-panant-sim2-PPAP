@@ -1,3 +1,5 @@
+import { t } from '../../i18n/translator.js';
+
 export function createScheduleView({
   describeStage,
   getCalendarEntry,
@@ -33,7 +35,7 @@ export function createScheduleView({
   function renderToday(state) {
     if (!state) return;
     const day = state.curr_day || 1;
-    setText(seasonLabel, `${state.season}年目`);
+    setText(seasonLabel, t('schedule.season').replace('{season}', state.season));
     const entry = typeof getCalendarEntry === 'function' ? getCalendarEntry(day) : null;
 
     const playoffStages = state.playoffs?.stages || [];
@@ -44,7 +46,7 @@ export function createScheduleView({
     const currentStage = entry?.stage || (typeof maxDay === 'function' && day > maxDay()
       ? postStage
       : seasonStage);
-    setText(dayLabel, `Day ${day} (${describeStage ? describeStage(currentStage) : currentStage})`);
+    setText(dayLabel, t('schedule.day').replace('{day}', day).replace('{stage}', describeStage ? describeStage(currentStage) : currentStage));
 
     const host = getNode(container);
     if (host) host.innerHTML = '';
@@ -63,14 +65,14 @@ export function createScheduleView({
 
     if (seasonFinished && state.playoffs?.active) {
       const stage = state.playoffs.stages?.[state.playoffs.stageIndex] || null;
-      setText(gamesLabel, 'ポストシーズン進行中');
-      appendMessage(stage ? `${stage.name}の試合を進行しましょう。` : 'ポストシーズン進行中です。右のカードから試合を実行できます。');
+      setText(gamesLabel, t('schedule.playoffs.inProgress'));
+      appendMessage(stage ? t('schedule.playoffs.inProgress.desc').replace('{stage}', stage.name) : t('schedule.playoffs.inProgress.generic'));
       return;
     }
 
     if (seasonFinished && !state.playoffs?.started) {
-      setText(gamesLabel, 'レギュラー日程終了');
-      appendMessage('「今日を進める」でポストシーズンを編成します。');
+      setText(gamesLabel, t('schedule.season.regular.finished'));
+      appendMessage(t('schedule.season.regular.finished.desc'));
       return;
     }
 
@@ -78,8 +80,8 @@ export function createScheduleView({
       const champ = state.playoffs.champion != null && typeof id2name === 'function'
         ? id2name(state.playoffs.champion)
         : null;
-      setText(gamesLabel, 'シーズン終了');
-      appendMessage(champ ? `日本一: ${champ}` : '新シーズン開始をお待ちください。');
+      setText(gamesLabel, t('schedule.season.finished'));
+      appendMessage(champ ? t('schedule.season.finished.champion').replace('{champion}', champ) : t('schedule.season.finished.generic'));
       return;
     }
 
@@ -88,14 +90,14 @@ export function createScheduleView({
     const hasRest = today.some(evt => (evt?.type || 'game') === 'rest');
 
     if (hasRest && gamesToday.length === 0) {
-      setText(gamesLabel, '休養日');
-      appendMessage('本日は全チーム休養日です。疲労回復と士気調整の日となります。');
+      setText(gamesLabel, t('schedule.restDay'));
+      appendMessage(t('schedule.restDay.desc'));
       return;
     }
 
-    setText(gamesLabel, `カード ${gamesToday.length} 件`);
+    setText(gamesLabel, t('schedule.gamesToday').replace('{count}', gamesToday.length));
     if (!gamesToday.length) {
-      appendMessage(hasSchedule ? '本日の試合はありません。' : 'スケジュール未設定です。新シーズンを開始してください。');
+      appendMessage(hasSchedule ? t('schedule.noGamesToday') : t('schedule.notSet'));
       return;
     }
 
@@ -103,9 +105,9 @@ export function createScheduleView({
     const table = createElement('table', {},
       createElement('thead', {},
         createElement('tr', {},
-          createElement('th', {}, 'Home'),
-          createElement('th', {}, 'Away'),
-          createElement('th', {}, 'シリーズ')
+          createElement('th', {}, t('schedule.table.header.home')),
+          createElement('th', {}, t('schedule.table.header.away')),
+          createElement('th', {}, t('schedule.table.header.series'))
         )
       ),
       createElement('tbody')

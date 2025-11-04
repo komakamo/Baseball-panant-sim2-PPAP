@@ -1,3 +1,5 @@
+import { t } from '../../i18n/translator.js';
+
 export function createStaffView({
   createElement = (tag, attrs = {}, ...children) => {
     const node = document.createElement(tag);
@@ -42,29 +44,29 @@ export function createStaffView({
     {
       key: 'coaches',
       icon: 'graduation-cap',
-      label: 'コーチ陣',
-      description: '打撃・投手を含む現場スタッフの層を厚くします。',
+      label: t('staff.coaches.label'),
+      description: t('staff.coaches.description'),
       max: 8,
     },
     {
       key: 'scouts',
       icon: 'binoculars',
-      label: 'スカウト',
-      description: 'アマチュア調査網を拡充し、ドラフト情報を強化します。',
+      label: t('staff.scouts.label'),
+      description: t('staff.scouts.description'),
       max: 8,
     },
     {
       key: 'analysts',
       icon: 'line-chart',
-      label: 'アナリスト',
-      description: 'データ分析体制を整え、選手評価や戦略立案を支援します。',
+      label: t('staff.analysts.label'),
+      description: t('staff.analysts.description'),
       max: 8,
     },
     {
       key: 'marketing',
       icon: 'megaphone',
-      label: '営業・広報',
-      description: '集客・ファンサービスを充実させ、人気向上を狙います。',
+      label: t('staff.marketing.label'),
+      description: t('staff.marketing.description'),
       max: 8,
     },
   ];
@@ -95,7 +97,7 @@ export function createStaffView({
     const currentValue = Number(finance.staff[type.key]) || 0;
     const next = Math.max(0, Math.min(type.max, Math.floor(nextValue)));
     if (next === currentValue) {
-      controls.valueLabel.textContent = `${next} 名`;
+      controls.valueLabel.textContent = t('staff.count').replace('{count}', next);
       return false;
     }
 
@@ -107,11 +109,11 @@ export function createStaffView({
       const totalCost = unitCost * diff;
       if (reserves < totalCost) {
         if (controls.slider) controls.slider.value = currentValue;
-        controls.valueLabel.textContent = `${currentValue} 名`;
+        controls.valueLabel.textContent = t('staff.count').replace('{count}', currentValue);
         if (typeof showToast === 'function') {
-          showToast('採用予算が不足しています。', {
+          showToast(t('toast.staff.budget.insufficient'), {
             type: 'error',
-            description: `必要: ${formatReserve(totalCost)} ／ 残高: ${formatReserve(reserves)}`,
+            description: t('toast.staff.budget.insufficient.desc').replace('{required}', formatReserve(totalCost)).replace('{reserves}', formatReserve(reserves)),
             duration: 4200,
           });
         }
@@ -119,7 +121,7 @@ export function createStaffView({
       }
       finance.staff[type.key] = next;
       finance.budget.reserves = reserves - totalCost;
-      logHighlight('briefcase', `【スタッフ採用】${id2name(teamId)}が${type.label}を${diff}名増員しました。`, {
+      logHighlight('briefcase', t('log.staff.hire').replace('{team}', id2name(teamId)).replace('{staff}', type.label).replace('{count}', diff), {
         category: 'finance',
         financeType: 'staff',
         tid: teamId,
@@ -130,7 +132,7 @@ export function createStaffView({
       const refund = Math.round(unitCost * 0.3 * reduction);
       finance.staff[type.key] = next;
       finance.budget.reserves = reserves + refund;
-      logHighlight('briefcase', `【スタッフ再編】${type.label}を${reduction}名削減し体制を見直しました。`, {
+      logHighlight('briefcase', t('log.staff.fire').replace('{staff}', type.label).replace('{count}', reduction), {
         category: 'finance',
         financeType: 'staff',
         tid: teamId,
@@ -139,12 +141,12 @@ export function createStaffView({
     }
 
     if (!Array.isArray(state.devLogs)) state.devLogs = [];
-    state.devLogs.push(`[${id2name(teamId)}] スタッフ構成更新: ${type.label} ${currentValue}→${next}`);
+    state.devLogs.push(t('log.staff.update').replace('{team}', id2name(teamId)).replace('{staff}', type.label).replace('{from}', currentValue).replace('{to}', next));
 
-    controls.valueLabel.textContent = `${next} 名`;
+    controls.valueLabel.textContent = t('staff.count').replace('{count}', next);
     if (controls.reserveLabel) {
       const nextReserve = formatReserve(finance.budget.reserves || 0);
-      controls.reserveLabel.textContent = `運転資金 ${nextReserve}`;
+      controls.reserveLabel.textContent = t('staff.reserves').replace('{reserves}', nextReserve);
     }
     updateFinancialSnapshots(teamId);
     saveAndRerender();
@@ -165,7 +167,7 @@ export function createStaffView({
           createElement('strong', { text: type.label })
         )
       ),
-      createElement('span', { class: 'staff-slider-value', text: `${current} 名` })
+      createElement('span', { class: 'staff-slider-value', text: t('staff.count').replace('{count}', current) })
     );
     const meta = createElement('div', { class: 'staff-slider-meta', text: type.description });
     const slider = createElement('input', {
@@ -189,12 +191,12 @@ export function createStaffView({
       const maxAffordable = findMaxAffordableStaff(current, reserves, unitCost);
       if (value > maxAffordable) {
         slider.classList.add('warn');
-        slider.title = `予算が不足しています。\n最大${maxAffordable}名まで雇用可能です。`;
+        slider.title = t('tooltip.staff.budget.insufficient').replace('{max}', maxAffordable);
       } else {
         slider.classList.remove('warn');
         slider.title = '';
       }
-      controls.valueLabel.textContent = `${value} 名`;
+      controls.valueLabel.textContent = t('staff.count').replace('{count}', value);
     };
     slider.onchange = () => {
       let value = Number(slider.value);
@@ -203,7 +205,7 @@ export function createStaffView({
         value = maxAffordable;
         slider.value = maxAffordable;
         if (typeof showToast === 'function') {
-          showToast(`予算が不足しているため、${maxAffordable}名に設定しました。`, { type: 'info', duration: 4200 });
+          showToast(t('toast.staff.budget.insufficient.adjusted').replace('{max}', maxAffordable), { type: 'info', duration: 4200 });
         }
       }
       adjustStaffLevel(context, type, value, controls);
@@ -211,11 +213,11 @@ export function createStaffView({
 
     row.append(header, meta, slider,
       createElement('div', { class: 'staff-slider-footer mini' },
-        createElement('span', { text: `コスト ${formatReserve(staffCosts[type.key] || 0)} ／ 名` })
+        createElement('span', { text: t('staff.cost').replace('{cost}', formatReserve(staffCosts[type.key] || 0)) })
       )
     );
     if (!canControl) {
-      slider.title = '自チーム以外は操作できません（コミッショナーモードで可）';
+      slider.title = t('tooltip.facilities.notUserTeam');
     }
     return row;
   }
@@ -225,7 +227,7 @@ export function createStaffView({
     ensureTeamMeta();
     const finance = state.teamFinances?.[context.teamId];
     if (!finance) {
-      return createElement('div', { class: 'front-office-empty mini', text: '財務データが見つかりません。シーズンを開始してください。' });
+      return createElement('div', { class: 'front-office-empty mini', text: t('staff.finance.notFound') });
     }
     const reserves = Number(finance.budget?.reserves) || 0;
 
@@ -234,9 +236,9 @@ export function createStaffView({
       createElement('div', { class: 'front-office-card-header' },
         createElement('h3', {},
           createElement('i', { 'data-lucide': 'briefcase-business', class: 'mini-icon' }),
-          'スタッフ配置'
+          t('staff.title')
         ),
-        createElement('span', { class: 'pill', text: `運転資金 ${formatReserve(reserves)}` })
+        createElement('span', { class: 'pill', text: t('staff.reserves').replace('{reserves}', formatReserve(reserves)) })
       )
     );
 

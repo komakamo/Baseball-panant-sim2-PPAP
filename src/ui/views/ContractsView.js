@@ -1,3 +1,5 @@
+import { t } from '../../i18n/translator.js';
+
 export function createContractsView({
   createElement = (tag, attrs = {}, ...children) => {
     const node = document.createElement(tag);
@@ -64,19 +66,15 @@ export function createContractsView({
 
   function formatStatus(status) {
     if (!status) return '—';
-    const map = {
-      active: '稼働',
-      negotiating: '交渉中',
-      holdout: '保留',
-      'free-agent': 'FA',
-      expired: '満了',
-    };
-    return map[status] || status;
+    return t(`contract.status.${status}`) || status;
   }
 
   function probabilityText(probabilities = {}) {
-    const format = (value) => `${Math.round((value || 0) * 100)}%`;
-    return `受諾 ${format(probabilities.accept)} / 再交渉 ${format(probabilities.retry)} / 決裂 ${format(probabilities.breakOff)}`;
+    const format = (value) => Math.round((value || 0) * 100);
+    return t('contract.probability.text')
+      .replace('{accept}', format(probabilities.accept))
+      .replace('{retry}', format(probabilities.retry))
+      .replace('{breakOff}', format(probabilities.breakOff));
   }
 
   function normalizeOfferTerms(player, terms, market, context) {
@@ -106,7 +104,7 @@ export function createContractsView({
     player.contract = contract;
     upsertFinanceContract(context.teamId, player, contract);
     updateFinancialSnapshots(context.teamId);
-    logHighlight('notebook-pen', `【交渉継続】${player.name}との交渉は継続中。再提示の余地があります。`, {
+    logHighlight('notebook-pen', t('log.negotiation.hold').replace('{name}', player.name), {
       category: 'finance',
       financeType: 'contract',
       tid: context.teamId,
@@ -124,7 +122,7 @@ export function createContractsView({
     player.contract = contract;
     upsertFinanceContract(context.teamId, player, contract);
     updateFinancialSnapshots(context.teamId);
-    logHighlight('user-x', `【交渉決裂】${player.name}が交渉から離脱しました。条件の見直しが必要です。`, {
+    logHighlight('user-x', t('log.negotiation.break').replace('{name}', player.name), {
       category: 'finance',
       financeType: 'contract',
       tid: context.teamId,
@@ -178,8 +176,12 @@ export function createContractsView({
         recomputeAllRatings: recomputeAllRatingsAll,
       });
     }
-    const incentiveText = contract.incentives?.total ? ` (インセンティブ計${millionFormatter(contract.incentives.total)})` : '';
-    logHighlight('wallet', `【契約合意】${player.name}と${contract.totalYears}年 AAV ${millionFormatter(contract.AAV)}${incentiveText}で合意しました。`, {
+    const incentiveText = contract.incentives?.total ? t('contract.incentives.text').replace('{total}', millionFormatter(contract.incentives.total)) : '';
+    logHighlight('wallet', t('log.negotiation.accepted')
+      .replace('{name}', player.name)
+      .replace('{years}', contract.totalYears)
+      .replace('{aav}', millionFormatter(contract.AAV))
+      .replace('{incentives}', incentiveText), {
       category: 'finance',
       financeType: 'contract',
       tid: context.teamId,
@@ -237,20 +239,22 @@ export function createContractsView({
     const { evaluation, market } = entry;
     const textLines = [];
     if (evaluation.accepted) {
-      textLines.push(`提示が受諾されました。 ${evaluation.terms.years}年 / ${millionFormatter(evaluation.terms.AAV)}`);
+      textLines.push(t('negotiation.result.accepted')
+        .replace('{years}', evaluation.terms.years)
+        .replace('{aav}', millionFormatter(evaluation.terms.AAV)));
     } else {
-      textLines.push('提示は拒否されました。カウンター条件をご確認ください。');
+      textLines.push(t('negotiation.result.rejected'));
     }
     textLines.push(probabilityText(evaluation.probabilities));
     cell.append(createElement('div', { class: 'negotiation-text mini', html: textLines.join('<br>') }));
     const actionRow = createElement('div', { class: 'negotiation-actions' });
     if (evaluation.accepted) {
-      const confirmBtn = createElement('button', { class: 'primary' }, '契約締結');
+      const confirmBtn = createElement('button', { class: 'primary' }, t('action.signContract'));
       confirmBtn.onclick = () => {
         applyAcceptance(player, context, evaluation.terms, market);
       };
       actionRow.append(confirmBtn);
-      const adjustBtn = createElement('button', { class: 'ghost' }, '再提示');
+      const adjustBtn = createElement('button', { class: 'ghost' }, t('action.renegotiate'));
       adjustBtn.onclick = () => {
         negotiationState.delete(player.id);
         render(lastContext);
@@ -258,13 +262,13 @@ export function createContractsView({
       actionRow.append(adjustBtn);
     } else {
       const counter = evaluation.counter || market;
-      const acceptCounterBtn = createElement('button', { class: 'primary' }, 'カウンターで合意');
+      const acceptCounterBtn = createElement('button', { class: 'primary' }, t('action.acceptCounter'));
       acceptCounterBtn.onclick = () => {
         applyAcceptance(player, context, counter, market);
       };
-      const holdBtn = createElement('button', { class: 'ghost' }, '保留');
+      const holdBtn = createElement('button', { class: 'ghost' }, t('action.hold'));
       holdBtn.onclick = () => applyHold(player, context);
-      const breakBtn = createElement('button', { class: 'ghost danger' }, '交渉打ち切り');
+      const breakBtn = createElement('button', { class: 'ghost danger' }, t('action.breakOff'));
       breakBtn.onclick = () => applyBreakOff(player, context);
       actionRow.append(acceptCounterBtn, holdBtn, breakBtn);
     }
@@ -279,14 +283,19 @@ export function createContractsView({
     const defaultAAV = negotiationState.get(player.id)?.offer?.AAV || contract?.AAV || market.AAV;
     const defaultYears = negotiationState.get(player.id)?.offer?.years || contract?.yearsRemaining || contract?.years || market.years;
     const row = createElement('tr');
-    const label = player.velo != null ? (player.role || player.sub_role || '投手') : (player.pos || '野手');
+    const label = player.velo != null ? (player.role || player.sub_role || t('prospect.type.pitcher')) : (player.pos || t('prospect.type.batter'));
+    const contractText = contract
+      ? t('contract.term.full')
+        .replace('{years}', contract.yearsRemaining ?? contract.years ?? 0)
+        .replace('{aav}', millionFormatter(contract.AAV || 0))
+      : t('contract.term.full')
+        .replace('{years}', market.years)
+        .replace('{aav}', millionFormatter(market.AAV));
     row.append(
       createElement('td', {}, player.name),
       createElement('td', {}, label),
       createElement('td', {}, `${Math.round(overall)}`),
-      createElement('td', {}, contract
-        ? `${contract.yearsRemaining ?? contract.years ?? 0}年 / ${millionFormatter(contract.AAV || 0)}`
-        : `${market.years}年 / ${millionFormatter(market.AAV)}`),
+      createElement('td', {}, contractText),
       createElement('td', {}, formatStatus(contract?.status))
     );
     const offerInput = createElement('input', {
@@ -304,15 +313,15 @@ export function createContractsView({
     });
     yearInput.disabled = !context.canControl;
     const inputsCell = createElement('td', { class: 'offer-cell' },
-      createElement('label', { class: 'mini' }, 'AAV'),
+      createElement('label', { class: 'mini' }, t('contract.offer.aav')),
       offerInput,
-      createElement('label', { class: 'mini' }, '年数'),
+      createElement('label', { class: 'mini' }, t('contract.offer.years')),
       yearInput
     );
     row.append(inputsCell);
     const actionCell = createElement('td');
     if (context.canControl) {
-      const offerBtn = createElement('button', { class: 'primary' }, '提示');
+      const offerBtn = createElement('button', { class: 'primary' }, t('action.submitOffer'));
       offerBtn.onclick = () => {
         const offer = {
           AAV: parseInt(offerInput.value, 10) || defaultAAV,
@@ -323,7 +332,7 @@ export function createContractsView({
       };
       actionCell.append(offerBtn);
     } else {
-      actionCell.append(createElement('span', { class: 'mini' }, '操作不可'));
+      actionCell.append(createElement('span', { class: 'mini' }, t('common.notAvailable')));
     }
     row.append(actionCell);
     row.append(buildResultCell(player, context));
@@ -339,21 +348,21 @@ export function createContractsView({
     const wrap = createElement('div', { class: 'contract-negotiation' });
     const players = roster ? [...(roster.bats || []), ...(roster.pits || [])] : [];
     if (!players.length) {
-      wrap.append(createElement('div', { class: 'mini' }, 'ロスターに選手がいません。')); 
+      wrap.append(createElement('div', { class: 'mini' }, t('roster.empty')));
       container.append(wrap);
       return;
     }
     players.sort((a, b) => (getOverall(b) || 0) - (getOverall(a) || 0));
     const table = createElement('table', { class: 'contract-table negotiation-table' },
       createElement('thead', {}, createElement('tr', {},
-        createElement('th', {}, '選手'),
-        createElement('th', {}, '役割'),
-        createElement('th', {}, '総合'),
-        createElement('th', {}, '現行契約/目安'),
-        createElement('th', {}, '状態'),
-        createElement('th', {}, '提示条件'),
-        createElement('th', {}, '操作'),
-        createElement('th', {}, '交渉結果')
+        createElement('th', {}, t('contracts.table.header.player')),
+        createElement('th', {}, t('contracts.table.header.role')),
+        createElement('th', {}, t('contracts.table.header.overall')),
+        createElement('th', {}, t('contracts.table.header.currentContract')),
+        createElement('th', {}, t('contracts.table.header.status')),
+        createElement('th', {}, t('contracts.table.header.offer')),
+        createElement('th', {}, t('contracts.table.header.actions')),
+        createElement('th', {}, t('contracts.table.header.result'))
       )),
       createElement('tbody')
     );
@@ -361,7 +370,7 @@ export function createContractsView({
       table.lastChild.append(createPlayerRow(player, context));
     });
     wrap.append(createElement('div', { class: 'table-scroll', style: 'max-height:360px;' }, table));
-    wrap.append(createElement('div', { class: 'mini', style: 'color: var(--text-secondary);' }, '※ 提示条件は百万円単位で調整してください。保留すると締切が短縮されます。'));
+    wrap.append(createElement('div', { class: 'mini', style: 'color: var(--text-secondary);' }, t('contracts.note')));
     container.append(wrap);
     refreshIcons();
   }
