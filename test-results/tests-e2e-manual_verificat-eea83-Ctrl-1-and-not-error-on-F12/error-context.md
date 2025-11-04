@@ -1,0 +1,1193 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - link "メインコンテンツへスキップ" [ref=e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - heading "PennantSim Lite Web v12" [level=1] [ref=e5]: PennantSim Lite Web v12
+      - generic [ref=e6]:
+        - generic [ref=e7]: NPB (2025)
+        - generic [ref=e8]: 育成強化 / 士気・疲労・施設・特訓
+        - generic [ref=e9]: 保存は自動 / ローカル
+  - generic [ref=e10]:
+    - complementary [ref=e11]:
+      - generic [ref=e12]:
+        - heading "進行" [level=2] [ref=e14]:
+          - img [ref=e15]
+          - text: 進行
+        - generic [ref=e17]:
+          - generic [ref=e18]:
+            - button "新シーズン開始" [ref=e19] [cursor=pointer]:
+              - img [ref=e20]
+              - text: 新シーズン開始
+            - generic [ref=e22]:
+              - button "今日を進める" [ref=e23] [cursor=pointer]:
+                - img [ref=e24]
+                - text: 今日を進める
+              - button "最後まで" [ref=e26] [cursor=pointer]:
+                - img [ref=e27]
+                - text: 最後まで
+          - generic [ref=e30]:
+            - generic [ref=e31]: 1年目
+            - generic [ref=e32]: Day 1 (準備)
+            - generic [ref=e33]: カード 0 件
+          - generic [ref=e35]: スケジュール未設定です。新シーズンを開始してください。
+      - generic [ref=e36]:
+        - heading "設定" [level=2] [ref=e38]:
+          - img [ref=e39]
+          - text: 設定
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - text: ホーム有利（%）
+            - spinbutton "ホーム有利（%）" [ref=e43] [cursor=pointer]: "5"
+          - generic [ref=e44]:
+            - text: 対戦回数
+            - combobox "対戦回数" [ref=e45] [cursor=pointer]:
+              - option "2"
+              - option "4"
+              - option "6" [selected]
+              - option "8"
+          - generic [ref=e46]:
+            - text: 乱数シード
+            - spinbutton "乱数シード" [ref=e47] [cursor=pointer]: "2025"
+          - generic [ref=e48]:
+            - text: イベント頻度
+            - combobox "イベント頻度" [ref=e49] [cursor=pointer]:
+              - option "控えめ"
+              - option "標準" [selected]
+              - option "多め"
+          - generic [ref=e50]:
+            - text: シナリオテーマ
+            - combobox "シナリオテーマ" [ref=e51] [cursor=pointer]:
+              - option "バランス" [selected]
+              - option "ヒロイック"
+              - option "ドラマティック"
+              - option "ライバル重視"
+          - generic [ref=e52]:
+            - text: ルールセット
+            - combobox "ルールセット" [ref=e53] [cursor=pointer]:
+              - option "NPB (2025)" [selected]
+              - option "NPB-CL"
+              - option "NPB-PL"
+              - option "MLB-RS"
+              - option "MLB-POST"
+          - button "全データ初期化" [ref=e54] [cursor=pointer]:
+            - img [ref=e55]
+            - text: 全データ初期化
+      - generic [ref=e58]:
+        - heading "操作設定" [level=2] [ref=e60]:
+          - img [ref=e61]
+          - text: 操作設定
+        - generic [ref=e63]:
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - text: 自分のチーム
+              - combobox "自分のチーム" [ref=e66] [cursor=pointer]:
+                - option "読売ジャイアンツ" [selected]
+                - option "阪神タイガース"
+                - option "広島東洋カープ"
+                - option "中日ドラゴンズ"
+                - option "横浜DeNAベイスターズ"
+                - option "東京ヤクルトスワローズ"
+                - option "オリックス・バファローズ"
+                - option "福岡ソフトバンクホークス"
+                - option "北海道日本ハムファイターズ"
+                - option "東北楽天ゴールデンイーグルス"
+                - option "千葉ロッテマリーンズ"
+                - option "埼玉西武ライオンズ"
+            - generic [ref=e67]:
+              - text: モード
+              - combobox "モード" [ref=e68] [cursor=pointer]:
+                - option "自分チームのみ" [selected]
+                - option "コミッショナー"
+          - generic [ref=e69]: ※ 通常は自分のチームだけ操作可。コミッショナーは全チーム操作可。
+    - main [ref=e70]:
+      - region "シーズンダッシュボード" [ref=e71]:
+        - heading "シーズンダッシュボード" [level=2] [ref=e73]:
+          - img [ref=e74]
+          - text: シーズンダッシュボード
+        - generic [ref=e79]:
+          - generic [ref=e80]: 読売ジャイアンツ チーム状況
+          - generic [ref=e81]:
+            - generic [ref=e82]:
+              - generic [ref=e83]:
+                - img [ref=e84]
+                - text: 戦績
+              - generic [ref=e90]: 0-0
+              - generic [ref=e91]:
+                - generic [ref=e92]: 勝率 .---
+                - generic [ref=e93]: 試合数 0
+            - generic [ref=e94]:
+              - generic [ref=e95]:
+                - img [ref=e96]
+                - text: 連勝・連敗
+              - generic [ref=e98]: —
+              - generic [ref=e99]:
+                - generic [ref=e100]: 直近10戦 0-0
+                - generic [ref=e101]: 試合なし
+                - generic [ref=e102]: データ不足
+            - generic [ref=e103]:
+              - generic [ref=e104]:
+                - img [ref=e105]
+                - text: 財務状況
+              - generic [ref=e108]: ¥4200.0M
+              - generic [ref=e109]:
+                - generic [ref=e110]: 収支 +¥0.0M
+                - generic [ref=e111]: 取引履歴なし
+            - generic [ref=e112]:
+              - generic [ref=e113]:
+                - img [ref=e114]
+                - text: チーム士気
+              - generic [ref=e117]: "68"
+              - generic [ref=e118]:
+                - generic [ref=e119]: 前回比 0
+                - generic [ref=e120]: Day 1 更新
+          - generic [ref=e121]:
+            - generic [ref=e123]:
+              - img [ref=e124]
+              - text: シーズンタイムライン
+            - generic [ref=e126]: 試合データがまだありません。
+            - generic [ref=e128]:
+              - generic [ref=e129]:
+                - img [ref=e130]
+                - text: 士気 68
+              - generic [ref=e133]: 前回比 ±0
+              - generic [ref=e134]: Day 1
+      - region "クラブインサイト" [ref=e135]:
+        - heading "クラブインサイト" [level=2] [ref=e137]:
+          - img [ref=e138]
+          - text: クラブインサイト
+        - generic [ref=e143]:
+          - tablist [ref=e144]:
+            - tab "シーズン" [selected] [ref=e145] [cursor=pointer]:
+              - img [ref=e146]
+              - text: シーズン
+            - tab "財務" [ref=e148] [cursor=pointer]:
+              - img [ref=e149]
+              - text: 財務
+            - tab "育成" [ref=e152] [cursor=pointer]:
+              - img [ref=e153]
+              - text: 育成
+          - tabpanel [ref=e157]:
+            - region "順位表" [ref=e159]:
+              - heading "順位表" [level=3] [ref=e161]:
+                - img [ref=e162]
+                - text: 順位表
+              - generic [ref=e164]:
+                - generic [ref=e165]: Central
+                - table [ref=e166]:
+                  - rowgroup [ref=e167]:
+                    - row "チーム W L T Pct GB" [ref=e168]:
+                      - cell "チーム" [ref=e169]
+                      - cell "W" [ref=e170]
+                      - cell "L" [ref=e171]
+                      - cell "T" [ref=e172]
+                      - cell "Pct" [ref=e173]
+                      - cell "GB" [ref=e174]
+                  - rowgroup [ref=e175]:
+                    - row "読売ジャイアンツ 0 0 0 0.000 0.0" [ref=e176]:
+                      - cell "読売ジャイアンツ" [ref=e177]
+                      - cell "0" [ref=e178]
+                      - cell "0" [ref=e179]
+                      - cell "0" [ref=e180]
+                      - cell "0.000" [ref=e181]
+                      - cell "0.0" [ref=e182]
+                    - row "阪神タイガース 0 0 0 0.000 0.0" [ref=e183]:
+                      - cell "阪神タイガース" [ref=e184]
+                      - cell "0" [ref=e185]
+                      - cell "0" [ref=e186]
+                      - cell "0" [ref=e187]
+                      - cell "0.000" [ref=e188]
+                      - cell "0.0" [ref=e189]
+                    - row "広島東洋カープ 0 0 0 0.000 0.0" [ref=e190]:
+                      - cell "広島東洋カープ" [ref=e191]
+                      - cell "0" [ref=e192]
+                      - cell "0" [ref=e193]
+                      - cell "0" [ref=e194]
+                      - cell "0.000" [ref=e195]
+                      - cell "0.0" [ref=e196]
+                    - row "中日ドラゴンズ 0 0 0 0.000 0.0" [ref=e197]:
+                      - cell "中日ドラゴンズ" [ref=e198]
+                      - cell "0" [ref=e199]
+                      - cell "0" [ref=e200]
+                      - cell "0" [ref=e201]
+                      - cell "0.000" [ref=e202]
+                      - cell "0.0" [ref=e203]
+                    - row "横浜DeNAベイスターズ 0 0 0 0.000 0.0" [ref=e204]:
+                      - cell "横浜DeNAベイスターズ" [ref=e205]
+                      - cell "0" [ref=e206]
+                      - cell "0" [ref=e207]
+                      - cell "0" [ref=e208]
+                      - cell "0.000" [ref=e209]
+                      - cell "0.0" [ref=e210]
+                    - row "東京ヤクルトスワローズ 0 0 0 0.000 0.0" [ref=e211]:
+                      - cell "東京ヤクルトスワローズ" [ref=e212]
+                      - cell "0" [ref=e213]
+                      - cell "0" [ref=e214]
+                      - cell "0" [ref=e215]
+                      - cell "0.000" [ref=e216]
+                      - cell "0.0" [ref=e217]
+                - generic [ref=e218]: Pacific
+                - table [ref=e219]:
+                  - rowgroup [ref=e220]:
+                    - row "チーム W L T Pct GB" [ref=e221]:
+                      - cell "チーム" [ref=e222]
+                      - cell "W" [ref=e223]
+                      - cell "L" [ref=e224]
+                      - cell "T" [ref=e225]
+                      - cell "Pct" [ref=e226]
+                      - cell "GB" [ref=e227]
+                  - rowgroup [ref=e228]:
+                    - row "オリックス・バファローズ 0 0 0 0.000 0.0" [ref=e229]:
+                      - cell "オリックス・バファローズ" [ref=e230]
+                      - cell "0" [ref=e231]
+                      - cell "0" [ref=e232]
+                      - cell "0" [ref=e233]
+                      - cell "0.000" [ref=e234]
+                      - cell "0.0" [ref=e235]
+                    - row "福岡ソフトバンクホークス 0 0 0 0.000 0.0" [ref=e236]:
+                      - cell "福岡ソフトバンクホークス" [ref=e237]
+                      - cell "0" [ref=e238]
+                      - cell "0" [ref=e239]
+                      - cell "0" [ref=e240]
+                      - cell "0.000" [ref=e241]
+                      - cell "0.0" [ref=e242]
+                    - row "北海道日本ハムファイターズ 0 0 0 0.000 0.0" [ref=e243]:
+                      - cell "北海道日本ハムファイターズ" [ref=e244]
+                      - cell "0" [ref=e245]
+                      - cell "0" [ref=e246]
+                      - cell "0" [ref=e247]
+                      - cell "0.000" [ref=e248]
+                      - cell "0.0" [ref=e249]
+                    - row "東北楽天ゴールデンイーグルス 0 0 0 0.000 0.0" [ref=e250]:
+                      - cell "東北楽天ゴールデンイーグルス" [ref=e251]
+                      - cell "0" [ref=e252]
+                      - cell "0" [ref=e253]
+                      - cell "0" [ref=e254]
+                      - cell "0.000" [ref=e255]
+                      - cell "0.0" [ref=e256]
+                    - row "千葉ロッテマリーンズ 0 0 0 0.000 0.0" [ref=e257]:
+                      - cell "千葉ロッテマリーンズ" [ref=e258]
+                      - cell "0" [ref=e259]
+                      - cell "0" [ref=e260]
+                      - cell "0" [ref=e261]
+                      - cell "0.000" [ref=e262]
+                      - cell "0.0" [ref=e263]
+                    - row "埼玉西武ライオンズ 0 0 0 0.000 0.0" [ref=e264]:
+                      - cell "埼玉西武ライオンズ" [ref=e265]
+                      - cell "0" [ref=e266]
+                      - cell "0" [ref=e267]
+                      - cell "0" [ref=e268]
+                      - cell "0.000" [ref=e269]
+                      - cell "0.0" [ref=e270]
+      - region [ref=e271]:
+        - generic [ref=e272]:
+          - heading "チーム管理 & 育成" [level=2] [ref=e273]:
+            - img [ref=e274]
+            - text: チーム管理 & 育成
+          - combobox [ref=e279] [cursor=pointer]:
+            - option "読売ジャイアンツ" [selected]
+            - option "阪神タイガース"
+            - option "広島東洋カープ"
+            - option "中日ドラゴンズ"
+            - option "横浜DeNAベイスターズ"
+            - option "東京ヤクルトスワローズ"
+            - option "オリックス・バファローズ"
+            - option "福岡ソフトバンクホークス"
+            - option "北海道日本ハムファイターズ"
+            - option "東北楽天ゴールデンイーグルス"
+            - option "千葉ロッテマリーンズ"
+            - option "埼玉西武ライオンズ"
+        - navigation "チーム管理セクション" [ref=e280]:
+          - button "ロスター" [ref=e281] [cursor=pointer]
+          - button "育成" [ref=e282] [cursor=pointer]
+          - button "個人成績" [ref=e283] [cursor=pointer]
+          - button "ドラフト" [ref=e284] [cursor=pointer]
+          - button "フロント" [ref=e285] [cursor=pointer]
+          - button "育成レポート" [ref=e286] [cursor=pointer]
+        - generic [ref=e287]:
+          - generic [ref=e288]:
+            - generic [ref=e289]:
+              - generic [ref=e290]:
+                - img [ref=e291]
+                - strong [ref=e296]: 読売ジャイアンツ 士気ダッシュボード
+              - button "履歴" [ref=e297] [cursor=pointer]:
+                - img [ref=e298]
+                - text: 履歴
+            - generic [ref=e300]:
+              - generic [ref=e301]:
+                - heading "チーム士気トレンド" [level=4] [ref=e302]:
+                  - img [ref=e303]
+                  - text: チーム士気トレンド
+                - generic [ref=e306]: 現在値 68
+                - paragraph [ref=e307]: 1年目 Day 1
+              - generic [ref=e308]:
+                - heading "直近イベント" [level=4] [ref=e309]:
+                  - img [ref=e310]
+                  - text: 直近イベント
+                - generic [ref=e313]: 最近のイベントはありません。
+          - button "1軍/2軍を自動編成" [ref=e315] [cursor=pointer]:
+            - img [ref=e316]
+            - text: 1軍/2軍を自動編成
+          - generic [ref=e322]:
+            - heading "野手" [level=3] [ref=e323]: 野手
+            - table [ref=e324]:
+              - rowgroup [ref=e325]:
+                - row "選手 年 守 投 ミ 選 パ 走 守 ポ 所属 特能 特訓" [ref=e326]:
+                  - cell "選手" [ref=e327]
+                  - cell "年" [ref=e328]
+                  - cell "守" [ref=e329]
+                  - cell "投" [ref=e330]
+                  - cell "ミ" [ref=e331]
+                  - cell "選" [ref=e332]
+                  - cell "パ" [ref=e333]
+                  - cell "走" [ref=e334]
+                  - cell "守" [ref=e335]
+                  - cell "ポ" [ref=e336]
+                  - cell "所属" [ref=e337]
+                  - cell [ref=e338]:
+                    - img [ref=e339]
+                  - cell [ref=e342]:
+                    - img [ref=e343]
+                  - cell [ref=e346]:
+                    - img [ref=e347]
+                  - cell "特能" [ref=e350]
+                  - cell "特訓" [ref=e351]
+              - rowgroup [ref=e352]:
+                - row "ディエゴ・モラレス 外 21 2B L 62 49 47 58 59 67 二軍 特訓(5)" [ref=e353]:
+                  - cell "ディエゴ・モラレス 外" [ref=e354]:
+                    - button "ディエゴ・モラレス" [ref=e355] [cursor=pointer]
+                    - generic "外国人枠対象" [ref=e356]: 外
+                  - cell "21" [ref=e357]
+                  - cell "2B" [ref=e358]
+                  - cell "L" [ref=e359]
+                  - cell "62" [ref=e360]
+                  - cell "49" [ref=e361]
+                  - cell "47" [ref=e362]
+                  - cell "58" [ref=e363]
+                  - cell "59" [ref=e364]
+                  - cell "67" [ref=e365]
+                  - cell "二軍" [ref=e366]:
+                    - combobox [ref=e367] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e368]
+                  - cell [ref=e369]
+                  - cell [ref=e370]
+                  - cell [ref=e371]
+                  - cell "特訓(5)" [ref=e372]:
+                    - button "特訓(5)" [ref=e373] [cursor=pointer]:
+                      - img [ref=e374]
+                      - text: 特訓(5)
+                - row "石田徹 30 RF L 51 51 64 60 57 69 二軍 特訓(5)" [ref=e376]:
+                  - cell "石田徹" [ref=e377]:
+                    - button "石田徹" [ref=e378] [cursor=pointer]
+                  - cell "30" [ref=e379]
+                  - cell "RF" [ref=e380]
+                  - cell "L" [ref=e381]
+                  - cell "51" [ref=e382]
+                  - cell "51" [ref=e383]
+                  - cell "64" [ref=e384]
+                  - cell "60" [ref=e385]
+                  - cell "57" [ref=e386]
+                  - cell "69" [ref=e387]
+                  - cell "二軍" [ref=e388]:
+                    - combobox [ref=e389] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e390]
+                  - cell [ref=e391]
+                  - cell [ref=e392]
+                  - cell [ref=e393]
+                  - cell "特訓(5)" [ref=e394]:
+                    - button "特訓(5)" [ref=e395] [cursor=pointer]:
+                      - img [ref=e396]
+                      - text: 特訓(5)
+                - row "竹内拓海 31 CF R 62 47 55 63 49 57 二軍 特訓(5)" [ref=e398]:
+                  - cell "竹内拓海" [ref=e399]:
+                    - button "竹内拓海" [ref=e400] [cursor=pointer]
+                  - cell "31" [ref=e401]
+                  - cell "CF" [ref=e402]
+                  - cell "R" [ref=e403]
+                  - cell "62" [ref=e404]
+                  - cell "47" [ref=e405]
+                  - cell "55" [ref=e406]
+                  - cell "63" [ref=e407]
+                  - cell "49" [ref=e408]
+                  - cell "57" [ref=e409]
+                  - cell "二軍" [ref=e410]:
+                    - combobox [ref=e411] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e412]
+                  - cell [ref=e413]
+                  - cell [ref=e414]
+                  - cell [ref=e415]
+                  - cell "特訓(5)" [ref=e416]:
+                    - button "特訓(5)" [ref=e417] [cursor=pointer]:
+                      - img [ref=e418]
+                      - text: 特訓(5)
+                - row "橋本圭太 31 CF R 60 57 47 48 46 54 二軍 特訓(5)" [ref=e420]:
+                  - cell "橋本圭太" [ref=e421]:
+                    - button "橋本圭太" [ref=e422] [cursor=pointer]
+                  - cell "31" [ref=e423]
+                  - cell "CF" [ref=e424]
+                  - cell "R" [ref=e425]
+                  - cell "60" [ref=e426]
+                  - cell "57" [ref=e427]
+                  - cell "47" [ref=e428]
+                  - cell "48" [ref=e429]
+                  - cell "46" [ref=e430]
+                  - cell "54" [ref=e431]
+                  - cell "二軍" [ref=e432]:
+                    - combobox [ref=e433] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e434]
+                  - cell [ref=e435]
+                  - cell [ref=e436]
+                  - cell [ref=e437]
+                  - cell "特訓(5)" [ref=e438]:
+                    - button "特訓(5)" [ref=e439] [cursor=pointer]:
+                      - img [ref=e440]
+                      - text: 特訓(5)
+                - row "山下健太 23 LF R 58 56 48 60 62 69 二軍 特訓(5)" [ref=e442]:
+                  - cell "山下健太" [ref=e443]:
+                    - button "山下健太" [ref=e444] [cursor=pointer]
+                  - cell "23" [ref=e445]
+                  - cell "LF" [ref=e446]
+                  - cell "R" [ref=e447]
+                  - cell "58" [ref=e448]
+                  - cell "56" [ref=e449]
+                  - cell "48" [ref=e450]
+                  - cell "60" [ref=e451]
+                  - cell "62" [ref=e452]
+                  - cell "69" [ref=e453]
+                  - cell "二軍" [ref=e454]:
+                    - combobox [ref=e455] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e456]
+                  - cell [ref=e457]
+                  - cell [ref=e458]
+                  - cell [ref=e459]
+                  - cell "特訓(5)" [ref=e460]:
+                    - button "特訓(5)" [ref=e461] [cursor=pointer]:
+                      - img [ref=e462]
+                      - text: 特訓(5)
+                - row "清水俊介 20 LF R 54 62 52 55 56 68 二軍 特訓(5)" [ref=e464]:
+                  - cell "清水俊介" [ref=e465]:
+                    - button "清水俊介" [ref=e466] [cursor=pointer]
+                  - cell "20" [ref=e467]
+                  - cell "LF" [ref=e468]
+                  - cell "R" [ref=e469]
+                  - cell "54" [ref=e470]
+                  - cell "62" [ref=e471]
+                  - cell "52" [ref=e472]
+                  - cell "55" [ref=e473]
+                  - cell "56" [ref=e474]
+                  - cell "68" [ref=e475]
+                  - cell "二軍" [ref=e476]:
+                    - combobox [ref=e477] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e478]
+                  - cell [ref=e479]
+                  - cell [ref=e480]
+                  - cell [ref=e481]
+                  - cell "特訓(5)" [ref=e482]:
+                    - button "特訓(5)" [ref=e483] [cursor=pointer]:
+                      - img [ref=e484]
+                      - text: 特訓(5)
+                - row "マイケル・ゴメス 外 潜在0% 22 3B R 50 53 60 64 46 53 二軍 特訓(5)" [ref=e486]:
+                  - cell "マイケル・ゴメス 外 潜在0%" [ref=e487]:
+                    - button "マイケル・ゴメス" [ref=e488] [cursor=pointer]
+                    - generic "外国人枠対象" [ref=e489]: 外
+                    - generic "二軍潜在開示度 0%" [ref=e490]: 潜在0%
+                  - cell "22" [ref=e491]
+                  - cell "3B" [ref=e492]
+                  - cell "R" [ref=e493]
+                  - cell "50" [ref=e494]
+                  - cell "53" [ref=e495]
+                  - cell "60" [ref=e496]
+                  - cell "64" [ref=e497]
+                  - cell "46" [ref=e498]
+                  - cell "53" [ref=e499]
+                  - cell "二軍" [ref=e500]:
+                    - combobox [ref=e501] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e502]
+                  - cell [ref=e503]
+                  - cell [ref=e504]
+                  - cell [ref=e505]
+                  - cell "特訓(5)" [ref=e506]:
+                    - button "特訓(5)" [ref=e507] [cursor=pointer]:
+                      - img [ref=e508]
+                      - text: 特訓(5)
+                - row "ハビエル・ブラウン 外 20 3B L 48 55 47 48 62 66 二軍 slugger_elite 特訓(5)" [ref=e510]:
+                  - cell "ハビエル・ブラウン 外" [ref=e511]:
+                    - button "ハビエル・ブラウン" [ref=e512] [cursor=pointer]
+                    - generic "外国人枠対象" [ref=e513]: 外
+                  - cell "20" [ref=e514]
+                  - cell "3B" [ref=e515]
+                  - cell "L" [ref=e516]
+                  - cell "48" [ref=e517]
+                  - cell "55" [ref=e518]
+                  - cell "47" [ref=e519]
+                  - cell "48" [ref=e520]
+                  - cell "62" [ref=e521]
+                  - cell "66" [ref=e522]
+                  - cell "二軍" [ref=e523]:
+                    - combobox [ref=e524] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e525]
+                  - cell [ref=e526]
+                  - cell [ref=e527]
+                  - cell "slugger_elite" [ref=e528]
+                  - cell "特訓(5)" [ref=e529]:
+                    - button "特訓(5)" [ref=e530] [cursor=pointer]:
+                      - img [ref=e531]
+                      - text: 特訓(5)
+                - row "フランク・ソト 外 潜在0% 29 RF R 49 64 51 51 54 51 二軍 特訓(5)" [ref=e533]:
+                  - cell "フランク・ソト 外 潜在0%" [ref=e534]:
+                    - button "フランク・ソト" [ref=e535] [cursor=pointer]
+                    - generic "外国人枠対象" [ref=e536]: 外
+                    - generic "二軍潜在開示度 0%" [ref=e537]: 潜在0%
+                  - cell "29" [ref=e538]
+                  - cell "RF" [ref=e539]
+                  - cell "R" [ref=e540]
+                  - cell "49" [ref=e541]
+                  - cell "64" [ref=e542]
+                  - cell "51" [ref=e543]
+                  - cell "51" [ref=e544]
+                  - cell "54" [ref=e545]
+                  - cell "51" [ref=e546]
+                  - cell "二軍" [ref=e547]:
+                    - combobox [ref=e548] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e549]
+                  - cell [ref=e550]
+                  - cell [ref=e551]
+                  - cell [ref=e552]
+                  - cell "特訓(5)" [ref=e553]:
+                    - button "特訓(5)" [ref=e554] [cursor=pointer]:
+                      - img [ref=e555]
+                      - text: 特訓(5)
+                - row "山下恭平 33 3B R 47 60 59 45 54 71 二軍 特訓(5)" [ref=e557]:
+                  - cell "山下恭平" [ref=e558]:
+                    - button "山下恭平" [ref=e559] [cursor=pointer]
+                  - cell "33" [ref=e560]
+                  - cell "3B" [ref=e561]
+                  - cell "R" [ref=e562]
+                  - cell "47" [ref=e563]
+                  - cell "60" [ref=e564]
+                  - cell "59" [ref=e565]
+                  - cell "45" [ref=e566]
+                  - cell "54" [ref=e567]
+                  - cell "71" [ref=e568]
+                  - cell "二軍" [ref=e569]:
+                    - combobox [ref=e570] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e571]
+                  - cell [ref=e572]
+                  - cell [ref=e573]
+                  - cell [ref=e574]
+                  - cell "特訓(5)" [ref=e575]:
+                    - button "特訓(5)" [ref=e576] [cursor=pointer]:
+                      - img [ref=e577]
+                      - text: 特訓(5)
+                - row "渡辺翔太 潜在0% 24 1B L 46 50 49 59 49 60 二軍 captain 特訓(5)" [ref=e579]:
+                  - cell "渡辺翔太 潜在0%" [ref=e580]:
+                    - button "渡辺翔太" [ref=e581] [cursor=pointer]
+                    - generic "二軍潜在開示度 0%" [ref=e582]: 潜在0%
+                  - cell "24" [ref=e583]
+                  - cell "1B" [ref=e584]
+                  - cell "L" [ref=e585]
+                  - cell "46" [ref=e586]
+                  - cell "50" [ref=e587]
+                  - cell "49" [ref=e588]
+                  - cell "59" [ref=e589]
+                  - cell "49" [ref=e590]
+                  - cell "60" [ref=e591]
+                  - cell "二軍" [ref=e592]:
+                    - combobox [ref=e593] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e594]
+                  - cell [ref=e595]
+                  - cell [ref=e596]
+                  - cell "captain" [ref=e597]
+                  - cell "特訓(5)" [ref=e598]:
+                    - button "特訓(5)" [ref=e599] [cursor=pointer]:
+                      - img [ref=e600]
+                      - text: 特訓(5)
+                - row "後藤悠斗 22 RF R 46 57 56 51 49 66 二軍 特訓(5)" [ref=e602]:
+                  - cell "後藤悠斗" [ref=e603]:
+                    - button "後藤悠斗" [ref=e604] [cursor=pointer]
+                  - cell "22" [ref=e605]
+                  - cell "RF" [ref=e606]
+                  - cell "R" [ref=e607]
+                  - cell "46" [ref=e608]
+                  - cell "57" [ref=e609]
+                  - cell "56" [ref=e610]
+                  - cell "51" [ref=e611]
+                  - cell "49" [ref=e612]
+                  - cell "66" [ref=e613]
+                  - cell "二軍" [ref=e614]:
+                    - combobox [ref=e615] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e616]
+                  - cell [ref=e617]
+                  - cell [ref=e618]
+                  - cell [ref=e619]
+                  - cell "特訓(5)" [ref=e620]:
+                    - button "特訓(5)" [ref=e621] [cursor=pointer]:
+                      - img [ref=e622]
+                      - text: 特訓(5)
+                - row "木村陽介 28 3B R 53 47 47 51 48 66 二軍 特訓(5)" [ref=e624]:
+                  - cell "木村陽介" [ref=e625]:
+                    - button "木村陽介" [ref=e626] [cursor=pointer]
+                  - cell "28" [ref=e627]
+                  - cell "3B" [ref=e628]
+                  - cell "R" [ref=e629]
+                  - cell "53" [ref=e630]
+                  - cell "47" [ref=e631]
+                  - cell "47" [ref=e632]
+                  - cell "51" [ref=e633]
+                  - cell "48" [ref=e634]
+                  - cell "66" [ref=e635]
+                  - cell "二軍" [ref=e636]:
+                    - combobox [ref=e637] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e638]
+                  - cell [ref=e639]
+                  - cell [ref=e640]
+                  - cell [ref=e641]
+                  - cell "特訓(5)" [ref=e642]:
+                    - button "特訓(5)" [ref=e643] [cursor=pointer]:
+                      - img [ref=e644]
+                      - text: 特訓(5)
+                - row "山本優斗 30 SS R 46 58 49 64 61 69 二軍 特訓(5)" [ref=e646]:
+                  - cell "山本優斗" [ref=e647]:
+                    - button "山本優斗" [ref=e648] [cursor=pointer]
+                  - cell "30" [ref=e649]
+                  - cell "SS" [ref=e650]
+                  - cell "R" [ref=e651]
+                  - cell "46" [ref=e652]
+                  - cell "58" [ref=e653]
+                  - cell "49" [ref=e654]
+                  - cell "64" [ref=e655]
+                  - cell "61" [ref=e656]
+                  - cell "69" [ref=e657]
+                  - cell "二軍" [ref=e658]:
+                    - combobox [ref=e659] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e660]
+                  - cell [ref=e661]
+                  - cell [ref=e662]
+                  - cell [ref=e663]
+                  - cell "特訓(5)" [ref=e664]:
+                    - button "特訓(5)" [ref=e665] [cursor=pointer]:
+                      - img [ref=e666]
+                      - text: 特訓(5)
+                - row "林蓮 潜在0% 25 C R 50 55 45 54 45 48 二軍 特訓(5)" [ref=e668]:
+                  - cell "林蓮 潜在0%" [ref=e669]:
+                    - button "林蓮" [ref=e670] [cursor=pointer]
+                    - generic "二軍潜在開示度 0%" [ref=e671]: 潜在0%
+                  - cell "25" [ref=e672]
+                  - cell "C" [ref=e673]
+                  - cell "R" [ref=e674]
+                  - cell "50" [ref=e675]
+                  - cell "55" [ref=e676]
+                  - cell "45" [ref=e677]
+                  - cell "54" [ref=e678]
+                  - cell "45" [ref=e679]
+                  - cell "48" [ref=e680]
+                  - cell "二軍" [ref=e681]:
+                    - combobox [ref=e682] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e683]
+                  - cell [ref=e684]
+                  - cell [ref=e685]
+                  - cell [ref=e686]
+                  - cell "特訓(5)" [ref=e687]:
+                    - button "特訓(5)" [ref=e688] [cursor=pointer]:
+                      - img [ref=e689]
+                      - text: 特訓(5)
+                - row "林悠生 30 C R 54 45 45 52 53 58 二軍 clutch_hitter 特訓(5)" [ref=e691]:
+                  - cell "林悠生" [ref=e692]:
+                    - button "林悠生" [ref=e693] [cursor=pointer]
+                  - cell "30" [ref=e694]
+                  - cell "C" [ref=e695]
+                  - cell "R" [ref=e696]
+                  - cell "54" [ref=e697]
+                  - cell "45" [ref=e698]
+                  - cell "45" [ref=e699]
+                  - cell "52" [ref=e700]
+                  - cell "53" [ref=e701]
+                  - cell "58" [ref=e702]
+                  - cell "二軍" [ref=e703]:
+                    - combobox [ref=e704] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e705]
+                  - cell [ref=e706]
+                  - cell [ref=e707]
+                  - cell "clutch_hitter" [ref=e708]
+                  - cell "特訓(5)" [ref=e709]:
+                    - button "特訓(5)" [ref=e710] [cursor=pointer]:
+                      - img [ref=e711]
+                      - text: 特訓(5)
+                - row "清水優斗 30 1B R 50 49 51 46 45 69 二軍 特訓(5)" [ref=e713]:
+                  - cell "清水優斗" [ref=e714]:
+                    - button "清水優斗" [ref=e715] [cursor=pointer]
+                  - cell "30" [ref=e716]
+                  - cell "1B" [ref=e717]
+                  - cell "R" [ref=e718]
+                  - cell "50" [ref=e719]
+                  - cell "49" [ref=e720]
+                  - cell "51" [ref=e721]
+                  - cell "46" [ref=e722]
+                  - cell "45" [ref=e723]
+                  - cell "69" [ref=e724]
+                  - cell "二軍" [ref=e725]:
+                    - combobox [ref=e726] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e727]
+                  - cell [ref=e728]
+                  - cell [ref=e729]
+                  - cell [ref=e730]
+                  - cell "特訓(5)" [ref=e731]:
+                    - button "特訓(5)" [ref=e732] [cursor=pointer]:
+                      - img [ref=e733]
+                      - text: 特訓(5)
+                - row "山崎大地 潜在0% 32 SS R 46 48 48 53 54 49 二軍 特訓(5)" [ref=e735]:
+                  - cell "山崎大地 潜在0%" [ref=e736]:
+                    - button "山崎大地" [ref=e737] [cursor=pointer]
+                    - generic "二軍潜在開示度 0%" [ref=e738]: 潜在0%
+                  - cell "32" [ref=e739]
+                  - cell "SS" [ref=e740]
+                  - cell "R" [ref=e741]
+                  - cell "46" [ref=e742]
+                  - cell "48" [ref=e743]
+                  - cell "48" [ref=e744]
+                  - cell "53" [ref=e745]
+                  - cell "54" [ref=e746]
+                  - cell "49" [ref=e747]
+                  - cell "二軍" [ref=e748]:
+                    - combobox [ref=e749] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e750]
+                  - cell [ref=e751]
+                  - cell [ref=e752]
+                  - cell [ref=e753]
+                  - cell "特訓(5)" [ref=e754]:
+                    - button "特訓(5)" [ref=e755] [cursor=pointer]:
+                      - img [ref=e756]
+                      - text: 特訓(5)
+          - generic [ref=e758]:
+            - heading "投手" [level=3] [ref=e759]: 投手
+            - table [ref=e760]:
+              - rowgroup [ref=e761]:
+                - row "選手 年 役 投 速 コ 変 体 ポ 所属 特能 特訓" [ref=e762]:
+                  - cell "選手" [ref=e763]
+                  - cell "年" [ref=e764]
+                  - cell "役" [ref=e765]
+                  - cell "投" [ref=e766]
+                  - cell "速" [ref=e767]
+                  - cell "コ" [ref=e768]
+                  - cell "変" [ref=e769]
+                  - cell "体" [ref=e770]
+                  - cell "ポ" [ref=e771]
+                  - cell "所属" [ref=e772]
+                  - cell [ref=e773]:
+                    - img [ref=e774]
+                  - cell [ref=e777]:
+                    - img [ref=e778]
+                  - cell [ref=e781]:
+                    - img [ref=e782]
+                  - cell "特能" [ref=e785]
+                  - cell "特訓" [ref=e786]
+              - rowgroup [ref=e787]:
+                - row "内田蓮 30 SP L 63 62 60 52 58 二軍 特訓(5)" [ref=e788]:
+                  - cell "内田蓮" [ref=e789]:
+                    - button "内田蓮" [ref=e790] [cursor=pointer]
+                  - cell "30" [ref=e791]
+                  - cell "SP" [ref=e792]
+                  - cell "L" [ref=e793]
+                  - cell "63" [ref=e794]
+                  - cell "62" [ref=e795]
+                  - cell "60" [ref=e796]
+                  - cell "52" [ref=e797]
+                  - cell "58" [ref=e798]
+                  - cell "二軍" [ref=e799]:
+                    - combobox [ref=e800] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e801]
+                  - cell [ref=e802]
+                  - cell [ref=e803]
+                  - cell [ref=e804]
+                  - cell "特訓(5)" [ref=e805]:
+                    - button "特訓(5)" [ref=e806] [cursor=pointer]:
+                      - img [ref=e807]
+                      - text: 特訓(5)
+                - row "中島将太 21 SP R 64 59 53 61 69 二軍 特訓(5)" [ref=e809]:
+                  - cell "中島将太" [ref=e810]:
+                    - button "中島将太" [ref=e811] [cursor=pointer]
+                  - cell "21" [ref=e812]
+                  - cell "SP" [ref=e813]
+                  - cell "R" [ref=e814]
+                  - cell "64" [ref=e815]
+                  - cell "59" [ref=e816]
+                  - cell "53" [ref=e817]
+                  - cell "61" [ref=e818]
+                  - cell "69" [ref=e819]
+                  - cell "二軍" [ref=e820]:
+                    - combobox [ref=e821] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e822]
+                  - cell [ref=e823]
+                  - cell [ref=e824]
+                  - cell [ref=e825]
+                  - cell "特訓(5)" [ref=e826]:
+                    - button "特訓(5)" [ref=e827] [cursor=pointer]:
+                      - img [ref=e828]
+                      - text: 特訓(5)
+                - row "石井誠 23 SP R 60 58 58 64 52 二軍 特訓(5)" [ref=e830]:
+                  - cell "石井誠" [ref=e831]:
+                    - button "石井誠" [ref=e832] [cursor=pointer]
+                  - cell "23" [ref=e833]
+                  - cell "SP" [ref=e834]
+                  - cell "R" [ref=e835]
+                  - cell "60" [ref=e836]
+                  - cell "58" [ref=e837]
+                  - cell "58" [ref=e838]
+                  - cell "64" [ref=e839]
+                  - cell "52" [ref=e840]
+                  - cell "二軍" [ref=e841]:
+                    - combobox [ref=e842] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e843]
+                  - cell [ref=e844]
+                  - cell [ref=e845]
+                  - cell [ref=e846]
+                  - cell "特訓(5)" [ref=e847]:
+                    - button "特訓(5)" [ref=e848] [cursor=pointer]:
+                      - img [ref=e849]
+                      - text: 特訓(5)
+                - row "山崎剛 20 クローザー L 64 46 48 48 48 二軍 特訓(5)" [ref=e851]:
+                  - cell "山崎剛" [ref=e852]:
+                    - button "山崎剛" [ref=e853] [cursor=pointer]
+                  - cell "20" [ref=e854]
+                  - cell "クローザー" [ref=e855]:
+                    - combobox [ref=e856] [cursor=pointer]:
+                      - option "中継ぎ"
+                      - option "セットアッパー"
+                      - option "クローザー" [selected]
+                  - cell "L" [ref=e857]
+                  - cell "64" [ref=e858]
+                  - cell "46" [ref=e859]
+                  - cell "48" [ref=e860]
+                  - cell "48" [ref=e861]
+                  - cell "48" [ref=e862]
+                  - cell "二軍" [ref=e863]:
+                    - combobox [ref=e864] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e865]
+                  - cell [ref=e866]
+                  - cell [ref=e867]
+                  - cell [ref=e868]
+                  - cell "特訓(5)" [ref=e869]:
+                    - button "特訓(5)" [ref=e870] [cursor=pointer]:
+                      - img [ref=e871]
+                      - text: 特訓(5)
+                - row "山下優 25 SP R 61 46 51 58 68 二軍 特訓(5)" [ref=e873]:
+                  - cell "山下優" [ref=e874]:
+                    - button "山下優" [ref=e875] [cursor=pointer]
+                  - cell "25" [ref=e876]
+                  - cell "SP" [ref=e877]
+                  - cell "R" [ref=e878]
+                  - cell "61" [ref=e879]
+                  - cell "46" [ref=e880]
+                  - cell "51" [ref=e881]
+                  - cell "58" [ref=e882]
+                  - cell "68" [ref=e883]
+                  - cell "二軍" [ref=e884]:
+                    - combobox [ref=e885] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e886]
+                  - cell [ref=e887]
+                  - cell [ref=e888]
+                  - cell [ref=e889]
+                  - cell "特訓(5)" [ref=e890]:
+                    - button "特訓(5)" [ref=e891] [cursor=pointer]:
+                      - img [ref=e892]
+                      - text: 特訓(5)
+                - row "林陽介 22 クローザー R 57 45 56 53 50 二軍 特訓(5)" [ref=e894]:
+                  - cell "林陽介" [ref=e895]:
+                    - button "林陽介" [ref=e896] [cursor=pointer]
+                  - cell "22" [ref=e897]
+                  - cell "クローザー" [ref=e898]:
+                    - combobox [ref=e899] [cursor=pointer]:
+                      - option "中継ぎ"
+                      - option "セットアッパー"
+                      - option "クローザー" [selected]
+                  - cell "R" [ref=e900]
+                  - cell "57" [ref=e901]
+                  - cell "45" [ref=e902]
+                  - cell "56" [ref=e903]
+                  - cell "53" [ref=e904]
+                  - cell "50" [ref=e905]
+                  - cell "二軍" [ref=e906]:
+                    - combobox [ref=e907] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e908]
+                  - cell [ref=e909]
+                  - cell [ref=e910]
+                  - cell [ref=e911]
+                  - cell "特訓(5)" [ref=e912]:
+                    - button "特訓(5)" [ref=e913] [cursor=pointer]:
+                      - img [ref=e914]
+                      - text: 特訓(5)
+                - row "ニコラス・キム 外 26 クローザー R 58 56 47 51 56 二軍 特訓(5)" [ref=e916]:
+                  - cell "ニコラス・キム 外" [ref=e917]:
+                    - button "ニコラス・キム" [ref=e918] [cursor=pointer]
+                    - generic "外国人枠対象" [ref=e919]: 外
+                  - cell "26" [ref=e920]
+                  - cell "クローザー" [ref=e921]:
+                    - combobox [ref=e922] [cursor=pointer]:
+                      - option "中継ぎ"
+                      - option "セットアッパー"
+                      - option "クローザー" [selected]
+                  - cell "R" [ref=e923]
+                  - cell "58" [ref=e924]
+                  - cell "56" [ref=e925]
+                  - cell "47" [ref=e926]
+                  - cell "51" [ref=e927]
+                  - cell "56" [ref=e928]
+                  - cell "二軍" [ref=e929]:
+                    - combobox [ref=e930] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e931]
+                  - cell [ref=e932]
+                  - cell [ref=e933]
+                  - cell [ref=e934]
+                  - cell "特訓(5)" [ref=e935]:
+                    - button "特訓(5)" [ref=e936] [cursor=pointer]:
+                      - img [ref=e937]
+                      - text: 特訓(5)
+                - row "井上優斗 23 SP R 52 61 51 56 60 二軍 特訓(5)" [ref=e939]:
+                  - cell "井上優斗" [ref=e940]:
+                    - button "井上優斗" [ref=e941] [cursor=pointer]
+                  - cell "23" [ref=e942]
+                  - cell "SP" [ref=e943]
+                  - cell "R" [ref=e944]
+                  - cell "52" [ref=e945]
+                  - cell "61" [ref=e946]
+                  - cell "51" [ref=e947]
+                  - cell "56" [ref=e948]
+                  - cell "60" [ref=e949]
+                  - cell "二軍" [ref=e950]:
+                    - combobox [ref=e951] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e952]
+                  - cell [ref=e953]
+                  - cell [ref=e954]
+                  - cell [ref=e955]
+                  - cell "特訓(5)" [ref=e956]:
+                    - button "特訓(5)" [ref=e957] [cursor=pointer]:
+                      - img [ref=e958]
+                      - text: 特訓(5)
+                - row "原将太 潜在0% 31 SP R 49 59 55 59 57 二軍 特訓(5)" [ref=e960]:
+                  - cell "原将太 潜在0%" [ref=e961]:
+                    - button "原将太" [ref=e962] [cursor=pointer]
+                    - generic "二軍潜在開示度 0%" [ref=e963]: 潜在0%
+                  - cell "31" [ref=e964]
+                  - cell "SP" [ref=e965]
+                  - cell "R" [ref=e966]
+                  - cell "49" [ref=e967]
+                  - cell "59" [ref=e968]
+                  - cell "55" [ref=e969]
+                  - cell "59" [ref=e970]
+                  - cell "57" [ref=e971]
+                  - cell "二軍" [ref=e972]:
+                    - combobox [ref=e973] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e974]
+                  - cell [ref=e975]
+                  - cell [ref=e976]
+                  - cell [ref=e977]
+                  - cell "特訓(5)" [ref=e978]:
+                    - button "特訓(5)" [ref=e979] [cursor=pointer]:
+                      - img [ref=e980]
+                      - text: 特訓(5)
+                - row "森海斗 潜在0% 30 SP R 49 56 54 64 53 二軍 特訓(5)" [ref=e982]:
+                  - cell "森海斗 潜在0%" [ref=e983]:
+                    - button "森海斗" [ref=e984] [cursor=pointer]
+                    - generic "二軍潜在開示度 0%" [ref=e985]: 潜在0%
+                  - cell "30" [ref=e986]
+                  - cell "SP" [ref=e987]
+                  - cell "R" [ref=e988]
+                  - cell "49" [ref=e989]
+                  - cell "56" [ref=e990]
+                  - cell "54" [ref=e991]
+                  - cell "64" [ref=e992]
+                  - cell "53" [ref=e993]
+                  - cell "二軍" [ref=e994]:
+                    - combobox [ref=e995] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e996]
+                  - cell [ref=e997]
+                  - cell [ref=e998]
+                  - cell [ref=e999]
+                  - cell "特訓(5)" [ref=e1000]:
+                    - button "特訓(5)" [ref=e1001] [cursor=pointer]:
+                      - img [ref=e1002]
+                      - text: 特訓(5)
+                - row "加藤剛 25 クローザー L 51 49 51 52 62 二軍 特訓(5)" [ref=e1004]:
+                  - cell "加藤剛" [ref=e1005]:
+                    - button "加藤剛" [ref=e1006] [cursor=pointer]
+                  - cell "25" [ref=e1007]
+                  - cell "クローザー" [ref=e1008]:
+                    - combobox [ref=e1009] [cursor=pointer]:
+                      - option "中継ぎ"
+                      - option "セットアッパー"
+                      - option "クローザー" [selected]
+                  - cell "L" [ref=e1010]
+                  - cell "51" [ref=e1011]
+                  - cell "49" [ref=e1012]
+                  - cell "51" [ref=e1013]
+                  - cell "52" [ref=e1014]
+                  - cell "62" [ref=e1015]
+                  - cell "二軍" [ref=e1016]:
+                    - combobox [ref=e1017] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e1018]
+                  - cell [ref=e1019]
+                  - cell [ref=e1020]
+                  - cell [ref=e1021]
+                  - cell "特訓(5)" [ref=e1022]:
+                    - button "特訓(5)" [ref=e1023] [cursor=pointer]:
+                      - img [ref=e1024]
+                      - text: 特訓(5)
+                - row "佐々木悠斗 32 クローザー L 52 47 49 53 66 二軍 特訓(5)" [ref=e1026]:
+                  - cell "佐々木悠斗" [ref=e1027]:
+                    - button "佐々木悠斗" [ref=e1028] [cursor=pointer]
+                  - cell "32" [ref=e1029]
+                  - cell "クローザー" [ref=e1030]:
+                    - combobox [ref=e1031] [cursor=pointer]:
+                      - option "中継ぎ"
+                      - option "セットアッパー"
+                      - option "クローザー" [selected]
+                  - cell "L" [ref=e1032]
+                  - cell "52" [ref=e1033]
+                  - cell "47" [ref=e1034]
+                  - cell "49" [ref=e1035]
+                  - cell "53" [ref=e1036]
+                  - cell "66" [ref=e1037]
+                  - cell "二軍" [ref=e1038]:
+                    - combobox [ref=e1039] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e1040]
+                  - cell [ref=e1041]
+                  - cell [ref=e1042]
+                  - cell [ref=e1043]
+                  - cell "特訓(5)" [ref=e1044]:
+                    - button "特訓(5)" [ref=e1045] [cursor=pointer]:
+                      - img [ref=e1046]
+                      - text: 特訓(5)
+                - row "後藤優斗 31 クローザー L 45 58 51 45 61 二軍 特訓(5)" [ref=e1048]:
+                  - cell "後藤優斗" [ref=e1049]:
+                    - button "後藤優斗" [ref=e1050] [cursor=pointer]
+                  - cell "31" [ref=e1051]
+                  - cell "クローザー" [ref=e1052]:
+                    - combobox [ref=e1053] [cursor=pointer]:
+                      - option "中継ぎ"
+                      - option "セットアッパー"
+                      - option "クローザー" [selected]
+                  - cell "L" [ref=e1054]
+                  - cell "45" [ref=e1055]
+                  - cell "58" [ref=e1056]
+                  - cell "51" [ref=e1057]
+                  - cell "45" [ref=e1058]
+                  - cell "61" [ref=e1059]
+                  - cell "二軍" [ref=e1060]:
+                    - combobox [ref=e1061] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e1062]
+                  - cell [ref=e1063]
+                  - cell [ref=e1064]
+                  - cell [ref=e1065]
+                  - cell "特訓(5)" [ref=e1066]:
+                    - button "特訓(5)" [ref=e1067] [cursor=pointer]:
+                      - img [ref=e1068]
+                      - text: 特訓(5)
+                - row "伊藤駿 潜在0% 21 SP L 50 48 47 48 57 二軍 特訓(5)" [ref=e1070]:
+                  - cell "伊藤駿 潜在0%" [ref=e1071]:
+                    - button "伊藤駿" [ref=e1072] [cursor=pointer]
+                    - generic "二軍潜在開示度 0%" [ref=e1073]: 潜在0%
+                  - cell "21" [ref=e1074]
+                  - cell "SP" [ref=e1075]
+                  - cell "L" [ref=e1076]
+                  - cell "50" [ref=e1077]
+                  - cell "48" [ref=e1078]
+                  - cell "47" [ref=e1079]
+                  - cell "48" [ref=e1080]
+                  - cell "57" [ref=e1081]
+                  - cell "二軍" [ref=e1082]:
+                    - combobox [ref=e1083] [cursor=pointer]:
+                      - option "一軍"
+                      - option "二軍" [selected]
+                  - cell [ref=e1084]
+                  - cell [ref=e1085]
+                  - cell [ref=e1086]
+                  - cell [ref=e1087]
+                  - cell "特訓(5)" [ref=e1088]:
+                    - button "特訓(5)" [ref=e1089] [cursor=pointer]:
+                      - img [ref=e1090]
+                      - text: 特訓(5)
+  - button "Trigger Error" [ref=e1092] [cursor=pointer]
+  - button "🛠 Debug" [ref=e1093] [cursor=pointer]
+  - generic [ref=e1094]:
+    - generic [ref=e1095]:
+      - heading "Debug Panel" [level=4] [ref=e1096]:
+        - img [ref=e1097]
+        - text: Debug Panel
+      - button "デバッグパネルを閉じる" [expanded] [ref=e1099] [cursor=pointer]:
+        - img [ref=e1100]
+    - generic [ref=e1103]:
+      - generic [ref=e1104]: "Scene: PRE / Turn: 1 / Season: 1"
+      - generic [ref=e1105]:
+        - button "1日進める" [ref=e1106] [cursor=pointer]
+        - button "1シーズン進める" [ref=e1107] [cursor=pointer]
+        - button "試合スキップ" [ref=e1108] [cursor=pointer]
+        - button "お金+10000" [ref=e1109] [cursor=pointer]
+        - button "全選手能力表示" [ref=e1110] [cursor=pointer]
+        - button "イベント強制発火" [ref=e1111] [cursor=pointer]
+      - generic [ref=e1113]: "[9:57:48 AM] Debug panel initialized."
+```
