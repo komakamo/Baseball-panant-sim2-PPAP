@@ -264,11 +264,11 @@ export function applyAllStarBreakDay(state, context, deps = {}) {
 
     for (const player of players) {
       if (!player || typeof player !== 'object') continue;
+      const normalizedFatigue = toNumber(player.fatigue, 0);
       if (fatigueRecovery) {
-        const before = Number.isFinite(player.fatigue) ? player.fatigue : 0;
-        player.fatigue = clampDefault(before - fatigueRecovery, 0, 100);
-      } else if (player.fatigue == null) {
-        player.fatigue = 0;
+        player.fatigue = clampDefault(normalizedFatigue - fatigueRecovery, 0, 100);
+      } else {
+        player.fatigue = normalizedFatigue;
       }
       if (playerPopularityGain) {
         const base = Number.isFinite(player.popularity) ? player.popularity : DEFAULT_PLAYER_POPULARITY;
