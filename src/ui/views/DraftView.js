@@ -286,7 +286,9 @@ export function createDraftView({
     sorted.forEach(prospect => {
       const tr = createElement('tr');
       const allowScout = isCommissioner || teamId === userTeamId;
-      const canPickNow = !!onClock && (isCommissioner || onClock === userTeamId);
+      const canPickNow = draft.round === 1
+        ? (pending.length > 0 && (isCommissioner || pending.includes(userTeamId)))
+        : (!!onClock && (isCommissioner || onClock === userTeamId));
 
       const renderActionButton = () => {
         const isFirstRound = draft.round === 1;
@@ -298,7 +300,7 @@ export function createDraftView({
             btn.title = t('tooltip.lotteryInProgress');
             return btn;
           }
-          if (!isCommissioner && nextFirst !== userTeamId) {
+          if (!isCommissioner && !pending.includes(userTeamId)) {
             btn.disabled = true;
             btn.title = t('tooltip.notYourTurn');
             return btn;
@@ -398,7 +400,7 @@ export function createDraftView({
         saveAndRerender();
       };
       const actionBtn = renderActionButton();
-      if (!canPickNow) actionBtn.disabled = true;
+      if (draft.round !== 1 && !canPickNow) actionBtn.disabled = true;
       group.append(dispatchBtn, actionBtn);
       actionCell.append(group);
 
