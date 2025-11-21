@@ -14,6 +14,7 @@ This project simulates a full baseball pennant race, providing tools to configur
    ```bash
    npm install
    ```
+   Dependencies should be installed locally with `npm install`; the resulting `node_modules` directory is not stored in the repository.
 
 ## Running Tests
 Execute the Jest suite:
