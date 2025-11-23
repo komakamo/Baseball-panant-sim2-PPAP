@@ -30,6 +30,31 @@ const PITCHING_KEYS = ['velo', 'ctrl', 'mov', 'stam', 'cmd', 'stuff', 'control',
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+function estimateAbility(player) {
+  const isPit = isPitcher(player);
+  if (isPit) {
+    return (Number(player.velo || 20) * 0.3 + Number(player.ctrl || 20) * 0.3 + Number(player.mov || 20) * 0.3 + Number(player.stam || 20) * 0.1);
+  }
+  return (Number(player.con || 20) * 0.3 + Number(player.disc || 20) * 0.1 + Number(player.pwr || 20) * 0.3 + Number(player.spd || 20) * 0.15 + Number(player.fld || 20) * 0.15);
+}
+
+function checkRetirement(player, rng) {
+  if (!player || typeof player !== 'object') return { retired: false };
+  const age = Number.isFinite(player.age) ? player.age : 24;
+  if (age < 34) return { retired: false };
+
+  const overall = estimateAbility(player);
+  const threshold = Math.max(35, 55 - (age - 34) * 3);
+  const roll = rng();
+
+  if (age >= 45) return { retired: true, reason: 'Age Limit' };
+  if (age >= 40 && overall < 45 && roll < 0.4) return { retired: true, reason: 'Age/Decline' };
+  if (age >= 36 && overall < 38 && roll < 0.25) return { retired: true, reason: 'Performance' };
+  if (age >= 34 && overall < 30 && roll < 0.1) return { retired: true, reason: 'Lost Ability' };
+
+  return { retired: false };
+}
+
 function resolveRng(rng) {
   return typeof rng === 'function' ? rng : Math.random;
 }
@@ -202,31 +227,57 @@ function normalizeRosterPlayers(roster) {
 
 export function applyAging(stateOrRosters, options = {}) {
   if (!stateOrRosters) {
-    return { teams: [], days: Number.isFinite(options.days) ? options.days : 1 };
+    return { teams: [], retired: [], days: Number.isFinite(options.days) ? options.days : 1 };
   }
   const rng = resolveRng(options.rng);
   const days = Number.isFinite(options.days) && options.days > 0 ? options.days : 1;
   const rosters = stateOrRosters.rosters || stateOrRosters;
   const teamIds = options.teamIds || Object.keys(rosters || {});
+  const freeAgents = Array.isArray(stateOrRosters.freeAgents) ? stateOrRosters.freeAgents : [];
   const results = [];
+  const retired = [];
+
+  const processList = (list, tid = null) => {
+    if (!Array.isArray(list)) return;
+    for (let i = list.length - 1; i >= 0; i--) {
+      const player = list[i];
+      const result = progressPlayerAging(player, days, { ...options, rng });
+      const retirement = checkRetirement(player, rng);
+
+      if (retirement.retired) {
+        list.splice(i, 1);
+        retired.push({
+          playerId: player.id,
+          name: player.name,
+          age: player.age,
+          teamId: tid,
+          reason: retirement.reason,
+          lastStats: result
+        });
+      } else if (result && result.declineApplied > 0 && tid) {
+        // Only track decline for roster players for now
+        let teamResult = results.find(r => r.teamId === tid);
+        if (!teamResult) {
+          teamResult = { teamId: tid, players: [] };
+          results.push(teamResult);
+        }
+        teamResult.players.push({ playerId: player.id, name: player.name, ...result });
+      }
+    }
+  };
 
   teamIds.forEach(tid => {
     const roster = rosters?.[tid];
     if (!roster) return;
-    const players = normalizeRosterPlayers(roster);
-    const playerResults = [];
-    players.forEach(player => {
-      const result = progressPlayerAging(player, days, { ...options, rng });
-      if (result && result.declineApplied > 0) {
-        playerResults.push({ playerId: player.id, name: player.name, ...result });
-      }
-    });
-    if (playerResults.length) {
-      results.push({ teamId: tid, players: playerResults });
-    }
+    processList(roster.bats, tid);
+    processList(roster.pits, tid);
   });
 
-  return { teams: results, days };
+  if (freeAgents.length > 0) {
+    processList(freeAgents, null);
+  }
+
+  return { teams: results, retired, days };
 }
 
 export { ensureAgingState as ensurePlayerAgingProfile, progressPlayerAging };
