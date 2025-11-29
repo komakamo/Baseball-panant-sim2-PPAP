@@ -49,8 +49,8 @@ function checkRetirement(player, rng) {
 
   if (age >= 45) return { retired: true, reason: 'Age Limit' };
   if (age >= 40 && overall < 45 && roll < 0.4) return { retired: true, reason: 'Age/Decline' };
-  if (age >= 36 && overall < 38 && roll < 0.25) return { retired: true, reason: 'Performance' };
-  if (age >= 34 && overall < 30 && roll < 0.1) return { retired: true, reason: 'Lost Ability' };
+  if (age >= 36 && overall < threshold && roll < 0.25) return { retired: true, reason: 'Performance' };
+  if (age >= 34 && overall < threshold && roll < 0.1) return { retired: true, reason: 'Lost Ability' };
 
   return { retired: false };
 }
