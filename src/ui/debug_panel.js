@@ -1,5 +1,5 @@
 // src/ui/debug_panel.js
-import { formatUserActions } from '../utils/action_logger.js';
+import { formatUserActions, logUserAction } from '../utils/action_logger.js';
 
 // Helper functions to access the main game state and actions
 // These will be initialized from the main script.
@@ -294,6 +294,7 @@ function setupJulesDebugConsole() {
     });
      window.addEventListener("unhandledrejection", (ev)=>{
         const reason = ev.reason && (ev.reason.stack || ev.reason.message) || ev.reason;
+        logUserAction('UnhandledRejection', String(reason));
         julesLastError = {
             message: `Unhandled Rejection: ${reason}`,
             stack: ev.reason?.stack || 'No stack trace available.',
