@@ -427,6 +427,17 @@ export function tickDay(state, deps = {}) {
     ? deps.applyAging(state, { days: 1, day, stage, rng })
     : applyPlayerAging(state, { days: 1, day, stage, rng });
 
+  if (agingResult && agingResult.updatedRosters) {
+    if (state.rosters) {
+      Object.keys(agingResult.updatedRosters).forEach(tid => {
+        state.rosters[tid] = agingResult.updatedRosters[tid];
+      });
+    }
+  }
+  if (agingResult && agingResult.updatedFreeAgents) {
+    state.freeAgents = agingResult.updatedFreeAgents;
+  }
+
   if (restDay && typeof restFn === 'function') {
     restFn(state);
   }

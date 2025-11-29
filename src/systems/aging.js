@@ -237,15 +237,21 @@ export function applyAging(stateOrRosters, options = {}) {
   const results = [];
   const retired = [];
 
+  const updatedRosters = {};
+  teamIds.forEach(tid => {
+    if (rosters[tid]) {
+      updatedRosters[tid] = { bats: [], pits: [] };
+    }
+  });
+
   const processList = (list, tid = null) => {
-    if (!Array.isArray(list)) return;
-    for (let i = list.length - 1; i >= 0; i--) {
-      const player = list[i];
+    if (!Array.isArray(list)) return [];
+    const active = [];
+    for (const player of list) {
       const result = progressPlayerAging(player, days, { ...options, rng });
       const retirement = checkRetirement(player, rng);
 
       if (retirement.retired) {
-        list.splice(i, 1);
         retired.push({
           playerId: player.id,
           name: player.name,
@@ -254,30 +260,34 @@ export function applyAging(stateOrRosters, options = {}) {
           reason: retirement.reason,
           lastStats: result
         });
-      } else if (result && result.declineApplied > 0 && tid) {
-        // Only track decline for roster players for now
-        let teamResult = results.find(r => r.teamId === tid);
-        if (!teamResult) {
-          teamResult = { teamId: tid, players: [] };
-          results.push(teamResult);
+      } else {
+        active.push(player);
+        if (result && result.declineApplied > 0 && tid) {
+          // Only track decline for roster players for now
+          let teamResult = results.find(r => r.teamId === tid);
+          if (!teamResult) {
+            teamResult = { teamId: tid, players: [] };
+            results.push(teamResult);
+          }
+          teamResult.players.push({ playerId: player.id, name: player.name, ...result });
         }
-        teamResult.players.push({ playerId: player.id, name: player.name, ...result });
       }
     }
+    return active;
   };
 
   teamIds.forEach(tid => {
     const roster = rosters?.[tid];
     if (!roster) return;
-    processList(roster.bats, tid);
-    processList(roster.pits, tid);
+    const bats = Array.isArray(roster.bats) ? roster.bats : [];
+    const pits = Array.isArray(roster.pits) ? roster.pits : [];
+    updatedRosters[tid].bats = processList(bats, tid);
+    updatedRosters[tid].pits = processList(pits, tid);
   });
 
-  if (freeAgents.length > 0) {
-    processList(freeAgents, null);
-  }
+  const updatedFreeAgents = processList(freeAgents, null);
 
-  return { teams: results, retired, days };
+  return { teams: results, retired, days, updatedRosters, updatedFreeAgents };
 }
 
 export { ensureAgingState as ensurePlayerAgingProfile, progressPlayerAging };
