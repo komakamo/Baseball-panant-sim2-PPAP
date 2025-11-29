@@ -213,7 +213,7 @@ function ensureArray(value) {
 
 function migrateDraftShape(draft) {
   if (!draft) return {};
-  const migrated = { ...draft };
+  const migrated = draft;
   if (Array.isArray(migrated.prospects) && !Array.isArray(migrated.pool)) {
     migrated.pool = migrated.prospects;
   }
