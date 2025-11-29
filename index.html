@@ -9323,17 +9323,23 @@ $$('#dashboard-tabs .dashboard-tab').forEach(btn=>{
 
   selUserTeam.addEventListener('change', () => {
     const newTeamId = parseInt(selUserTeam.value, 10);
-    teamSelectionStore.set(newTeamId, 'selUserTeam');
+    teamSelectionStore.set(newTeamId);
   });
 
   selTeamManage.addEventListener('change', () => {
     const newTeamId = parseInt(selTeamManage.value, 10);
-    teamSelectionStore.set(newTeamId, 'selTeamManage');
+    teamSelectionStore.set(newTeamId);
   });
 
   // Set initial state from store
-  const initialTeamId = teamSelectionStore.get();
-  teamSelectionStore.set(initialTeamId, 'init');
+  const storedTeamId = teamSelectionStore.get();
+  const initialTeamId = Number.isInteger(storedTeamId) && storedTeamId > 0
+    ? storedTeamId
+    : (State.teams && State.teams[0] ? State.teams[0].team_id : null);
+
+  if (initialTeamId !== null) {
+    teamSelectionStore.set(initialTeamId, { force: true });
+  }
   // ======== End Team Selection Sync ========
 
 

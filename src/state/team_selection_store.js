@@ -1,17 +1,28 @@
 const STORE_KEY = 'pennantsim-team-selection';
 
-let selectedTeamId = parseInt(localStorage.getItem(STORE_KEY) || '0', 10);
+const sanitizeTeamId = (teamId) => {
+  const parsed = parseInt(teamId, 10);
+  return Number.isNaN(parsed) || parsed <= 0 ? null : parsed;
+};
+
+let selectedTeamId = sanitizeTeamId(localStorage.getItem(STORE_KEY));
 const subscribers = new Set();
 
 const teamSelectionStore = {
   get: () => selectedTeamId,
-  set: (teamId) => {
-    const newTeamId = parseInt(teamId, 10);
-    if (selectedTeamId !== newTeamId) {
-      selectedTeamId = newTeamId;
-      localStorage.setItem(STORE_KEY, newTeamId);
+  set: (teamId, { force = false } = {}) => {
+    const newTeamId = sanitizeTeamId(teamId);
+    if (newTeamId === null) {
+      return null;
+    }
+
+    const changed = selectedTeamId !== newTeamId;
+    selectedTeamId = newTeamId;
+    localStorage.setItem(STORE_KEY, newTeamId);
+    if (changed || force) {
       teamSelectionStore.notify();
     }
+    return selectedTeamId;
   },
   subscribe: (callback) => {
     subscribers.add(callback);
