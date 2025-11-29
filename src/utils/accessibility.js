@@ -6,9 +6,14 @@
  * @returns {Function} A function to remove the focus trap.
  */
 export function focusTrap(element) {
+  if (!element) return () => {};
+
   const focusableElements = element.querySelectorAll(
     'a[href], button, input, textarea, select, details, [tabindex]:not([tabindex="-1"])'
   );
+
+  if (focusableElements.length === 0) return () => {};
+
   const firstFocusable = focusableElements[0];
   const lastFocusable = focusableElements[focusableElements.length - 1];
 
