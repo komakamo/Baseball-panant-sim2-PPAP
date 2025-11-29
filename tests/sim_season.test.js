@@ -89,4 +89,36 @@ describe('applyAllStarBreakDay', () => {
     const player = state.rosters.team1.bats[0];
     expect(player.fatigue).toBe(35);
   });
+
+  it('should add popularity to players when stored as a numeric string', () => {
+    const state = {
+      teams: [{ team_id: 'team1' }],
+      rosters: {
+        team1: {
+          bats: [{ id: 1, name: 'Player A', popularity: '60' }],
+          pits: [],
+        },
+      },
+      league: {
+        rules: {
+          allStarBreak: {
+            length: 1,
+            popularity: {
+              player: 5,
+            },
+          },
+        },
+      },
+    };
+
+    const context = {
+      stage: 'AS',
+      day: 100,
+    };
+
+    applyAllStarBreakDay(state, context);
+
+    const player = state.rosters.team1.bats[0];
+    expect(player.popularity).toBe(65);
+  });
 });
