@@ -271,8 +271,9 @@ export function applyAllStarBreakDay(state, context, deps = {}) {
         player.fatigue = normalizedFatigue;
       }
       if (playerPopularityGain) {
-        const base = Number.isFinite(player.popularity) ? player.popularity : DEFAULT_PLAYER_POPULARITY;
-        player.popularity = clampDefault(base + playerPopularityGain, 0, 100);
+        const base = toNumber(player.popularity, Number.NaN);
+        const baseline = Number.isNaN(base) ? DEFAULT_PLAYER_POPULARITY : base;
+        player.popularity = clampDefault(baseline + playerPopularityGain, 0, 100);
       } else if (player.popularity == null) {
         player.popularity = DEFAULT_PLAYER_POPULARITY;
       }
