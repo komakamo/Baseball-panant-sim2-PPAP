@@ -144,4 +144,13 @@ describe('roster rules', () => {
     expect(result.foreignCount).toBe(5);
     expect(result.errors.length).toBeGreaterThan(0);
   });
+
+  it('normalizeRules preserves explicit interleague disable flag', () => {
+    const rules = normalizeRules({
+      interleague: { enabled: false, rounds: 3 }
+    });
+
+    expect(rules.interleague.enabled).toBe(false);
+    expect(rules.interleague.rounds).toBe(3);
+  });
 });
