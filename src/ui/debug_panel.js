@@ -87,6 +87,43 @@ function setupEventListeners() {
       log('Game state not ready for forcing events.');
       return;
     }
+
+    const tid = Game.State.userTeamId ?? 0;
+    const day = Game.State.curr_day ?? 1;
+    const baseEvent = {
+      teamId: tid,
+      day,
+      title: 'デバッグイベント',
+      summary: 'デバッグ: 士気+5 / 疲労-5',
+      tag: 'DEBUG',
+      icon: 'sparkles',
+      effects: { morale: 5, fatigue: -5 },
+    };
+
+    const event = typeof Game.buildDebugNarrativeEvent === 'function'
+      ? Game.buildDebugNarrativeEvent({ teamId: tid, day })
+      : baseEvent;
+
+    try {
+      const abilityChanged = Game.applyNarrativeEvent(event);
+      const message = abilityChanged
+        ? `Forced narrative event applied to ${Game.id2name(tid)} (abilities updated).`
+        : `Forced narrative event applied to ${Game.id2name(tid)}.`;
+
+      log(`${message} Event: ${event.title || 'デバッグイベント'}`);
+      if (typeof Game.updateAll === 'function') {
+        Game.updateAll();
+      }
+      if (typeof window.showToast === 'function') {
+        window.showToast(message, { type: abilityChanged ? 'success' : 'info' });
+      }
+    } catch (error) {
+      const errorMessage = `Failed to apply narrative event: ${error.message || error}`;
+      log(errorMessage);
+      if (typeof window.showToast === 'function') {
+        window.showToast('イベント発火に失敗しました', { type: 'error', description: error.message || String(error) });
+      }
+    }
   });
 
   const toggleButton = $('#debug-panel-toggle');
