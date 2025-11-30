@@ -28,4 +28,26 @@ describe('schedule builder', () => {
     expect(interleagueEntries.length).toBe(0);
     expect(stageBounds.IL).toBeUndefined();
   });
+
+  it('matches expected games per team without shortages or overages', () => {
+    const rules = normalizeRules({
+      interleague: { enabled: true, rounds: 1, seriesLength: 2 },
+      gamesPerTeam: 16,
+    });
+
+    const seeds = [1, 5, 42];
+    seeds.forEach(seed => {
+      const { totalsByTeam, gamesPerTeam } = buildSeasonCalendar({
+        teams,
+        rules,
+        seed,
+        repeats: 4,
+      });
+
+      expect(gamesPerTeam).toBe(rules.gamesPerTeam);
+      Object.values(totalsByTeam).forEach(total => {
+        expect(total).toBe(rules.gamesPerTeam);
+      });
+    });
+  });
 });

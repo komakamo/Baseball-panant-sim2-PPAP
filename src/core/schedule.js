@@ -99,18 +99,46 @@ export function buildSeasonCalendar({ teams = [], seed = 42, rules = {}, repeats
     totalsByTeam[away] = (totalsByTeam[away] || 0) + 1;
   }
 
-  function pickSeriesLength(stage) {
+  function gamesRemaining(teamId, target) {
+    if (target == null) return Infinity;
+    const current = totalsByTeam[teamId] || 0;
+    return target - current;
+  }
+
+  function preferredSeriesLength(stage) {
     if (stage === 'IL') {
       return Math.max(1, normalizedRules.interleague.seriesLength || 3);
     }
-    return (rng() < 0.55) ? 3 : 2;
+    return 3;
   }
 
   function scheduleBlock(stage, leaguePairSets, options = {}) {
     const activeSets = leaguePairSets.filter(set => Array.isArray(set) && set.length);
     if (!activeSets.length) return;
+
+    const involvedTeams = new Set();
+    activeSets.forEach(set => {
+      set.forEach(([home, away]) => {
+        if (home != null) involvedTeams.add(home);
+        if (away != null) involvedTeams.add(away);
+      });
+    });
+
+    if (options.targetPerTeam != null && options.skipIfSatisfied) {
+      const everyoneSatisfied = [...involvedTeams].every(teamId => gamesRemaining(teamId, options.targetPerTeam) <= 0);
+      if (everyoneSatisfied) return;
+    }
+
     const startDay = dayCounter;
-    const seriesLength = Math.max(1, options.seriesLength || pickSeriesLength(stage));
+    const preferredLength = Math.max(1, options.seriesLength || preferredSeriesLength(stage));
+    let seriesLength = preferredLength;
+    if (options.targetPerTeam != null) {
+      let minRemaining = preferredLength;
+      involvedTeams.forEach(teamId => {
+        minRemaining = Math.min(minRemaining, gamesRemaining(teamId, options.targetPerTeam));
+      });
+      seriesLength = Math.max(1, Math.min(preferredLength, Math.round(Math.max(1, minRemaining))));
+    }
     const keys = activeSets.map(() => seriesCounter++);
     for (let gameNo = 1; gameNo <= seriesLength; gameNo++) {
       const matchups = [];
@@ -137,18 +165,29 @@ export function buildSeasonCalendar({ teams = [], seed = 42, rules = {}, repeats
     markStage(stage, startDay, dayCounter - 1);
   }
 
-  function scheduleLeagueStage(loopCount, stage) {
-    if (loopCount <= 0) return;
+  function scheduleLeagueStage(goalPerTeam, stage, options = {}) {
+    if (goalPerTeam <= 0) return;
     const roundsPerLeague = Math.max(centralRounds.length, pacificRounds.length);
-    for (let loop = 0; loop < loopCount; loop++) {
+    const estimatedLoops = options.estimatedLoops || 1;
+    const loopGuard = Math.max(estimatedLoops * 4, 4);
+    let loop = 0;
+
+    const needsMoreGames = () => teams.some(team => gamesRemaining(team.team_id, goalPerTeam) > 0);
+
+    while (needsMoreGames() && loop < loopGuard) {
       const centralOrder = centralRounds.length ? shuffle([...Array(centralRounds.length).keys()], rng) : [];
       const pacificOrder = pacificRounds.length ? shuffle([...Array(pacificRounds.length).keys()], rng) : [];
       for (let idx = 0; idx < roundsPerLeague; idx++) {
         const centralPairs = centralRounds.length ? centralRounds[centralOrder[idx % centralRounds.length]] : [];
         const pacificPairs = pacificRounds.length ? pacificRounds[pacificOrder[idx % pacificRounds.length]] : [];
-        const isFinalBlock = (loop === loopCount - 1) && (idx === roundsPerLeague - 1);
-        scheduleBlock(stage, [centralPairs, pacificPairs], { addRest: !isFinalBlock });
+        const isFinalBlock = idx === roundsPerLeague - 1;
+        scheduleBlock(stage, [centralPairs, pacificPairs], {
+          addRest: options.addRest !== false && !isFinalBlock,
+          targetPerTeam: goalPerTeam,
+          skipIfSatisfied: true
+        });
       }
+      loop++;
     }
   }
 
@@ -157,16 +196,17 @@ export function buildSeasonCalendar({ teams = [], seed = 42, rules = {}, repeats
   const opponents = Math.max(0, teamsPerLeague - 1);
   const interleagueCycles = normalizedRules.interleague.enabled === false ? 0 : (normalizedRules.interleague.rounds || 0);
   const interleagueGamesPerTeam = interleagueCycles * interleagueRounds.length * Math.max(1, normalizedRules.interleague.seriesLength || 3);
-  const avgSeriesLength = 2.55;
+  const avgSeriesLength = preferredSeriesLength('REG');
   const targetRegularGames = Math.max(0, (normalizedRules.gamesPerTeam || 0) - interleagueGamesPerTeam);
-  const baseLoopEstimate = opponents > 0 ? Math.max(1, Math.round(targetRegularGames / (opponents * avgSeriesLength))) : 1;
+  const baseLoopEstimate = opponents > 0 ? Math.max(1, Math.ceil(targetRegularGames / (opponents * avgSeriesLength))) : 1;
   const baselineRepeats = 6;
   const repeatFactor = Math.max(1, repeats);
   const totalLeagueLoops = Math.max(1, Math.round(baseLoopEstimate * (repeatFactor / baselineRepeats)));
   const firstHalfLoops = Math.max(1, Math.ceil(totalLeagueLoops / 2));
   const secondHalfLoops = Math.max(0, totalLeagueLoops - firstHalfLoops);
 
-  scheduleLeagueStage(firstHalfLoops, 'REG');
+  const firstHalfTarget = Math.max(0, Math.ceil(targetRegularGames / 2));
+  scheduleLeagueStage(firstHalfTarget, 'REG', { estimatedLoops: firstHalfLoops });
 
   function scheduleInterleague(cycles) {
     const totalCycles = Math.max(0, Math.floor(cycles));
@@ -180,7 +220,9 @@ export function buildSeasonCalendar({ teams = [], seed = 42, rules = {}, repeats
         const isLast = (cycle === totalCycles - 1) && (idx === order.length - 1);
         scheduleBlock('IL', [pairs], {
           seriesLength: Math.max(1, normalizedRules.interleague.seriesLength || 3),
-          addRest: !isLast
+          addRest: !isLast,
+          targetPerTeam: normalizedRules.gamesPerTeam,
+          skipIfSatisfied: true
         });
       });
     }
@@ -198,8 +240,87 @@ export function buildSeasonCalendar({ teams = [], seed = 42, rules = {}, repeats
   }
 
   if (secondHalfLoops > 0) {
-    scheduleLeagueStage(secondHalfLoops, 'REG');
+    scheduleLeagueStage(targetRegularGames, 'REG', { estimatedLoops: secondHalfLoops });
   }
+
+  function reconcileTotals(targetPerTeam) {
+    if (targetPerTeam == null) return;
+    const hasSurplus = () => teams.some(team => gamesRemaining(team.team_id, targetPerTeam) < 0);
+    const hasDeficit = () => teams.some(team => gamesRemaining(team.team_id, targetPerTeam) > 0);
+
+    for (let dayIndex = calendar.length - 1; dayIndex >= 0 && hasSurplus(); dayIndex--) {
+      const entry = calendar[dayIndex];
+      if (!entry || entry.stage === 'CS' || entry.stage === 'JS' || entry.stage === 'AS') continue;
+      if (!Array.isArray(entry.matchups) || !entry.matchups.length) continue;
+      for (let idx = entry.matchups.length - 1; idx >= 0 && hasSurplus(); idx--) {
+        const matchup = entry.matchups[idx];
+        const home = matchup?.home_id;
+        const away = matchup?.away_id;
+        if (home == null || away == null) continue;
+        const homeSurplus = gamesRemaining(home, targetPerTeam) < 0;
+        const awaySurplus = gamesRemaining(away, targetPerTeam) < 0;
+        if (homeSurplus || awaySurplus) {
+          entry.matchups.splice(idx, 1);
+          totalsByTeam[home] = (totalsByTeam[home] || 0) - 1;
+          totalsByTeam[away] = (totalsByTeam[away] || 0) - 1;
+        }
+      }
+    }
+
+    const buildDeficitPairs = () => {
+      const deficits = teams
+        .map(team => ({ id: team.team_id, remaining: gamesRemaining(team.team_id, targetPerTeam) }))
+        .filter(item => item.remaining > 0)
+        .sort((a, b) => b.remaining - a.remaining);
+      const pairs = [];
+      while (deficits.length >= 2) {
+        const home = deficits.shift();
+        const away = deficits.shift();
+        pairs.push([home.id, away.id]);
+        home.remaining -= 1;
+        away.remaining -= 1;
+        if (home.remaining > 0) deficits.push(home);
+        if (away.remaining > 0) deficits.push(away);
+        deficits.sort((a, b) => b.remaining - a.remaining);
+      }
+      return pairs;
+    };
+
+    while (hasDeficit()) {
+      const pairs = buildDeficitPairs();
+      if (!pairs.length) break;
+      scheduleBlock('REG', [pairs], {
+        seriesLength: 1,
+        targetPerTeam,
+        skipIfSatisfied: false,
+        addRest: false
+      });
+    }
+
+    const seriesCounts = {};
+    calendar.forEach(entry => {
+      if (!Array.isArray(entry.matchups)) return;
+      entry.matchups.forEach(matchup => {
+        if (matchup?.seriesKey == null) return;
+        seriesCounts[matchup.seriesKey] = (seriesCounts[matchup.seriesKey] || 0) + 1;
+      });
+    });
+    calendar.forEach(entry => {
+      if (!Array.isArray(entry.matchups)) return;
+      entry.matchups.forEach(matchup => {
+        if (matchup?.seriesKey == null) return;
+        matchup.seriesLength = seriesCounts[matchup.seriesKey];
+      });
+    });
+
+    Object.keys(stageBounds).forEach(key => delete stageBounds[key]);
+    calendar.forEach(entry => {
+      if (!entry) return;
+      markStage(entry.stage, entry.date, entry.date);
+    });
+  }
+
+  reconcileTotals(normalizedRules.gamesPerTeam);
 
   const csGames = Math.max(0, normalizedRules.postseason.cs?.maxGames || 0);
   if (csGames > 0) {
