@@ -7,7 +7,7 @@
 
 // List of JSON files to be checked
 const JSON_FILES = [
-  './data/specials.json',
+  './src/data/specials.json',
   // Add other JSON files here as needed
 ];
 
