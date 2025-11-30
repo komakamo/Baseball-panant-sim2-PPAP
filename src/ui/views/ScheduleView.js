@@ -36,7 +36,7 @@ export function createScheduleView({
     if (!state) return;
     const day = state.curr_day || 1;
     setText(seasonLabel, t('schedule.season').replace('{season}', state.season));
-    const entry = typeof getCalendarEntry === 'function' ? getCalendarEntry(day) : null;
+    const entry = typeof getCalendarEntry === 'function' ? getCalendarEntry(state, day) : null;
 
     const playoffStages = state.playoffs?.stages || [];
     const playoffStageIndex = state.playoffs?.stageIndex ?? 0;
