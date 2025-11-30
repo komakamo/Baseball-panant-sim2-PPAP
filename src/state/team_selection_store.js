@@ -54,8 +54,12 @@ const teamSelectionStore = {
     }
     return selectedTeamId;
   },
-  subscribe: (callback) => {
+  subscribe: (callback, { immediate = false } = {}) => {
+    ensureInitialized();
     subscribers.add(callback);
+    if (immediate) {
+      callback(selectedTeamId);
+    }
     return () => subscribers.delete(callback);
   },
   notify: () => {

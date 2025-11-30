@@ -30,4 +30,19 @@ describe('teamSelectionStore with browser storage', () => {
     unsubscribe();
     removeSpy.mockRestore();
   });
+
+  it('notifies new subscribers immediately when requested', async () => {
+    localStorage.setItem(STORE_KEY, '12');
+
+    const { default: store } = await import('../src/state/team_selection_store.js');
+    const subscriber = jest.fn();
+
+    const unsubscribe = store.subscribe(subscriber, { immediate: true });
+
+    expect(store.get()).toBe(12);
+    expect(subscriber).toHaveBeenCalledTimes(1);
+    expect(subscriber).toHaveBeenCalledWith(12);
+
+    unsubscribe();
+  });
 });
