@@ -25,8 +25,8 @@ describe('teamSelectionStore without browser storage', () => {
   it('stores selection in memory when localStorage is unavailable', async () => {
     const { default: store } = await import('../src/state/team_selection_store.js');
 
-    expect(store.set(7)).toBe(7);
-    expect(store.get()).toBe(7);
+    expect(store.set('C1')).toBe('C1');
+    expect(store.get()).toBe('C1');
   });
 
   it('can immediately notify subscribers of the current selection', async () => {
@@ -39,7 +39,7 @@ describe('teamSelectionStore without browser storage', () => {
     expect(subscriber).toHaveBeenCalledWith(null);
 
     store.set(9);
-    expect(subscriber).toHaveBeenCalledWith(9);
+    expect(subscriber).toHaveBeenCalledWith('9');
 
     unsubscribe();
   });
