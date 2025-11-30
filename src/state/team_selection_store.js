@@ -42,13 +42,13 @@ const teamSelectionStore = {
   set: (teamId, { force = false } = {}) => {
     ensureInitialized();
     const newTeamId = sanitizeTeamId(teamId);
-    if (newTeamId === null) {
-      return null;
-    }
-
     const changed = selectedTeamId !== newTeamId;
     selectedTeamId = newTeamId;
-    storage.setItem(STORE_KEY, String(newTeamId));
+    if (newTeamId === null) {
+      storage.removeItem(STORE_KEY);
+    } else {
+      storage.setItem(STORE_KEY, String(newTeamId));
+    }
     if (changed || force) {
       teamSelectionStore.notify();
     }
