@@ -85,10 +85,11 @@ export function normalizeRules(input) {
   const postseason = source.postseason || {};
   const rosterSource = (source.roster && typeof source.roster === 'object') ? source.roster : {};
   const gameSource = (source.game && typeof source.game === 'object') ? source.game : {};
+  const interleagueSource = (source.interleague && typeof source.interleague === 'object') ? source.interleague : {};
 
   const normalized = {
     gamesPerTeam: typeof source.gamesPerTeam === 'number' ? source.gamesPerTeam : base.gamesPerTeam,
-    interleague: { ...base.interleague, ...(source.interleague || {}) },
+    interleague: { ...base.interleague, ...interleagueSource },
     allStarBreak: { ...base.allStarBreak, ...(source.allStarBreak || {}) },
     postseason: {
       cs: { ...base.postseason.cs, ...(postseason.cs || {}) },
@@ -146,7 +147,12 @@ export function normalizeRules(input) {
 
   normalized.roster.foreignPlayers = normalizedForeign;
 
-  normalized.interleague.enabled = normalized.interleague.enabled !== false;
+  let interleagueEnabled = base.interleague.enabled;
+  if ('enabled' in interleagueSource) {
+    const rawEnabled = interleagueSource.enabled;
+    interleagueEnabled = rawEnabled === false ? false : Boolean(rawEnabled);
+  }
+  normalized.interleague.enabled = interleagueEnabled;
   normalized.interleague.rounds = Math.max(0, parseInt(normalized.interleague.rounds, 10) || 0);
   if (normalized.interleague.enabled && normalized.interleague.rounds === 0) {
     normalized.interleague.rounds = base.interleague.rounds;
