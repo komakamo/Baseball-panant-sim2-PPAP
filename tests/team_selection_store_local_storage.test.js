@@ -15,12 +15,12 @@ describe('teamSelectionStore with browser storage', () => {
     const subscriber = jest.fn();
     const unsubscribe = store.subscribe(subscriber);
 
-    expect(store.set(5)).toBe(5);
-    expect(localStorage.getItem(STORE_KEY)).toBe('5');
+    expect(store.set('C1')).toBe('C1');
+    expect(localStorage.getItem(STORE_KEY)).toBe('C1');
 
     subscriber.mockClear();
 
-    expect(store.set('invalid')).toBeNull();
+    expect(store.set('')).toBeNull();
     expect(store.get()).toBeNull();
     expect(localStorage.getItem(STORE_KEY)).toBeNull();
     expect(removeSpy).toHaveBeenCalledWith(STORE_KEY);
@@ -32,16 +32,16 @@ describe('teamSelectionStore with browser storage', () => {
   });
 
   it('notifies new subscribers immediately when requested', async () => {
-    localStorage.setItem(STORE_KEY, '12');
+    localStorage.setItem(STORE_KEY, 'T5');
 
     const { default: store } = await import('../src/state/team_selection_store.js');
     const subscriber = jest.fn();
 
     const unsubscribe = store.subscribe(subscriber, { immediate: true });
 
-    expect(store.get()).toBe(12);
+    expect(store.get()).toBe('T5');
     expect(subscriber).toHaveBeenCalledTimes(1);
-    expect(subscriber).toHaveBeenCalledWith(12);
+    expect(subscriber).toHaveBeenCalledWith('T5');
 
     unsubscribe();
   });

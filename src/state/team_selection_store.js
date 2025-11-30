@@ -1,8 +1,9 @@
 const STORE_KEY = 'pennantsim-team-selection';
 
 const sanitizeTeamId = (teamId) => {
-  const parsed = parseInt(teamId, 10);
-  return Number.isNaN(parsed) || parsed <= 0 ? null : parsed;
+  if (teamId === null || teamId === undefined) return null;
+  const normalized = String(teamId).trim();
+  return normalized ? normalized : null;
 };
 
 const createStorage = () => {
