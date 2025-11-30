@@ -1,5 +1,5 @@
 import { applyAllStarBreakDay, DEFAULT_TEAM_POPULARITY } from '../src/engine/sim_season.js';
-import { DEFAULT_TICKET_PRICE, DEFAULT_STADIUM_CAPACITY } from '../src/systems/fans.js';
+import { applyAttendanceToFinance, DEFAULT_TICKET_PRICE, DEFAULT_STADIUM_CAPACITY } from '../src/systems/fans.js';
 
 function createTeamState(popularityGain) {
   return {
@@ -69,5 +69,17 @@ describe('fans', () => {
     expect(boostedResult.fanImpacts.length).toBe(1);
     expect(boostedAttendance).toBeGreaterThan(baselineAttendance);
     expect(boostedRevenue).toBeGreaterThan(baselineRevenue);
+  });
+
+  it('includes sponsor revenue in totals when applying attendance', () => {
+    const finance = {
+      attendance: { capacity: DEFAULT_STADIUM_CAPACITY, seasonTotal: 1000, homeGames: 1 },
+      revenue: { ticket: 5000, merch: 2000, media: 1500, other: 750, sponsors: 3000 }
+    };
+
+    const result = applyAttendanceToFinance(finance, 12000, 24000);
+
+    expect(result.revenue.sponsors).toBe(3000);
+    expect(result.revenue.total).toBe(24000 + 5000 + 2000 + 1500 + 750 + 3000);
   });
 });

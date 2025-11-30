@@ -116,7 +116,11 @@ export function applyAttendanceToFinance(finance, attendance, ticketRevenue) {
 
   const revenue = { ...(finance.revenue || {}) };
   revenue.ticket = toNumber(revenue.ticket, 0) + ticket;
-  revenue.total = toNumber(revenue.ticket, 0) + toNumber(revenue.merch, 0) + toNumber(revenue.media, 0) + toNumber(revenue.other, 0);
+  revenue.total = toNumber(revenue.ticket, 0)
+    + toNumber(revenue.merch, 0)
+    + toNumber(revenue.media, 0)
+    + toNumber(revenue.other, 0)
+    + toNumber(revenue.sponsors, 0);
   finance.revenue = revenue;
 
   return { attendance: attendanceState, revenue };
