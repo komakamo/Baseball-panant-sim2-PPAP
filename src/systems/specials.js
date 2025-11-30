@@ -1,11 +1,15 @@
+import { getSpecialsData } from '../data/specialsData.js';
+
 let SPECIALS = [];
 const SPECIALS_BY_ID = new Map();
 const SPECIAL_IDS_BY_NAME = new Map();
 
-export async function loadSpecials() {
-    const response = await fetch('../data/specials.json');
-    const rawSpecials = await response.json();
-    initializeSpecials(rawSpecials);
+export async function loadSpecials(source = null) {
+  const resolvedSource = source || getSpecialsData();
+  const rawSpecials = await (typeof resolvedSource === 'function'
+    ? resolvedSource()
+    : resolvedSource);
+  initializeSpecials(rawSpecials);
 }
 
 export function initializeSpecials(rawSpecials) {

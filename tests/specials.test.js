@@ -1,6 +1,5 @@
+import { getSpecialsData } from '../src/data/specialsData.js';
 import { createPlateAppearanceSpecialEngine, initializeSpecials } from '../src/systems/specials.js';
-import * as fs from 'fs';
-import * as path from 'path';
 
 const makeContext = (bases = [null, null, null]) => ({
   inning: 1,
@@ -14,9 +13,7 @@ const makeContext = (bases = [null, null, null]) => ({
 
 describe('specials', () => {
   beforeAll(() => {
-    const specialsPath = path.resolve(__dirname, '../data/specials.json');
-    const specialsData = JSON.parse(fs.readFileSync(specialsPath, 'utf-8'));
-    initializeSpecials(specialsData);
+    initializeSpecials(getSpecialsData());
   });
   it('lefty_killer triggers only against left-handed pitchers and respects usage cap', () => {
     const engine = createPlateAppearanceSpecialEngine();
