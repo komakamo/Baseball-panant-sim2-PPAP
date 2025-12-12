@@ -3332,6 +3332,8 @@ function moveSquad(tid,pid,to,options={}){
   if(!s) return { ok:false, reason:'所属チームが見つかりません。' };
   const day=State.curr_day||1;
   const player=findPlayerById(tid,pid);
+  const teamName=id2name(tid);
+  const playerName=player?.name||`ID:${pid}`;
   const current=s.ichi.includes(pid)?'一軍':(s.ni.includes(pid)?'二軍':null);
   if(current===to){
     return { ok:true, changed:false, from:current, to, playerName:player?.name||null };
@@ -3343,8 +3345,6 @@ function moveSquad(tid,pid,to,options={}){
     const availableDay=lastMove+cooldown;
     if(day<availableDay){
       const remaining=Math.max(1, availableDay-day);
-      const teamName=id2name(tid);
-      const playerName=player?.name||`ID:${pid}`;
       const direction=to==='一軍'?'昇格':'降格';
       const reason=`${playerName}はクールダウン期間中のため${direction}できません。`;
       const log=`[編成制限] ${teamName} ${playerName}はクールダウン中のため${direction}不可（残り${remaining}日）`;
@@ -3358,9 +3358,36 @@ function moveSquad(tid,pid,to,options={}){
   s.ni=s.ni.filter(x=>x!==pid);
   if(to==="一軍") s.ichi.push(pid); else s.ni.push(pid);
   if(!Array.isArray(State.devLogs)) State.devLogs=[];
-  const teamName=id2name(tid);
-  const playerName=player?.name||`ID:${pid}`;
   State.devLogs.push(`[編成] ${teamName} ${playerName}を${to}へ移動 (${day}日目)`);
+
+  const rotation=State.rotation[tid]||{order:[],idx:0};
+  const playerIsSP=player?.role==="SP";
+  const ichiSet=new Set(s.ichi);
+  let order=Array.isArray(rotation.order)?rotation.order.filter(spid=>ichiSet.has(spid)):[];
+  let idx=Number.isInteger(rotation.idx)?rotation.idx:0;
+
+  if(playerIsSP && to!=='一軍' && rotation.order?.includes(pid)){
+    State.devLogs.push(`[ローテ更新] ${teamName} ${playerName} をローテーションから削除（二軍）`);
+  }
+
+  if(playerIsSP && to==='一軍' && !order.includes(pid)){
+    if(opts.autoRotationSetup){
+      order=State.rosters[tid].pits.filter(p=>p.role==="SP" && ichiSet.has(p.id)).map(p=>p.id);
+      idx=0;
+    }else{
+      order.push(pid);
+    }
+  }
+
+  if(order.length===0){
+    order=State.rosters[tid].pits.filter(p=>p.role==="SP" && ichiSet.has(p.id)).map(p=>p.id);
+    idx=0;
+  } else if(idx>=order.length){
+    idx=0;
+  }
+
+  State.rotation[tid]={order,idx};
+
   if(player) player.lastSquadMoveDay=day;
   if(!State.squadMoveLog || typeof State.squadMoveLog !== 'object') State.squadMoveLog={};
   State.squadMoveLog[pid]=day;
@@ -3496,14 +3523,32 @@ function pickDayLineup(tid, dayOverride=null){
 
   const bats=R.bats.filter(batter=>ichi.has(batter.id) && !batter.injury).sort((a,b)=>gameDayBattingScore(b,"R", strategy)-gameDayBattingScore(a,"R", strategy)).slice(0,9);
 
-  const SPorder=State.rotation[tid]?.order||[];
+  let SPorder=State.rotation[tid]?.order||[];
   let idx=State.rotation[tid]?.idx||0;
+  const filteredOrder = SPorder.filter(pid => ichi.has(pid));
+  if (filteredOrder.length !== SPorder.length) {
+    const removedIds = SPorder.filter(pid => !ichi.has(pid));
+    if (removedIds.length) {
+      if(!Array.isArray(State.devLogs)) State.devLogs=[];
+      removedIds.forEach(pid => {
+        const p = R.pits.find(x => x.id === pid);
+        const name = p?.name || `ID:${pid}`;
+        State.devLogs.push(`[ローテ確認] ${id2name(tid)} ${name} は二軍のため先発候補から除外`);
+      });
+    }
+    SPorder = filteredOrder;
+    if (SPorder.length > 0) {
+      idx = idx % SPorder.length;
+    } else {
+      idx = 0;
+    }
+  }
   let sp = null;
   let spFound = false;
   for(let i=0; i<SPorder.length; i++){
     const currentIdx = (idx + i) % SPorder.length;
     const potentialSpId = SPorder[currentIdx];
-    const potentialSp = R.pits.find(p => p.id === potentialSpId);
+    const potentialSp = R.pits.find(p => p.id === potentialSpId && ichi.has(p.id));
     if(potentialSp && !potentialSp.injury && (potentialSp.fatigue || 0) < 80) {
         sp = potentialSp;
         idx = (currentIdx + 1) % SPorder.length;
@@ -3511,7 +3556,7 @@ function pickDayLineup(tid, dayOverride=null){
         break;
     }
   }
-  
+
   if (!spFound) {
     sp = R.pits.filter(p => p.role === "SP" && ichi.has(p.id) && !p.injury)
                .sort((a,b) => (a.fatigue || 0) - (b.fatigue || 0))[0];
