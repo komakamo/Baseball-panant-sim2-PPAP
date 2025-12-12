@@ -244,12 +244,16 @@ export function createFacilitiesView({
     };
     slider.onchange = () => {
       let value = Number(slider.value);
-      const maxAffordable = findMaxAffordableLevel(level, type.max, dp);
-      if (value > maxAffordable) {
+      const availableDp = dp;
+      const requiredDp = calcUpgradeCost(level, value);
+      const maxAffordable = findMaxAffordableLevel(level, type.max, availableDp);
+      if (requiredDp > availableDp) {
         value = maxAffordable;
         slider.value = maxAffordable;
         if (typeof showToast === 'function') {
-          showToast(t('toast.facilities.dp.insufficient.desc').replace('{required}', '').replace('{available}', maxAffordable), { type: 'info', duration: 4200 });
+          showToast(t('toast.facilities.dp.insufficient.desc')
+            .replace('{required}', requiredDp)
+            .replace('{available}', availableDp), { type: 'info', duration: 4200 });
         }
       }
       applyFacilityLevel(state, context, type, value, controlRefs);
