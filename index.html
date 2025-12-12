@@ -933,8 +933,8 @@ import { focusTrap } from './src/utils/accessibility.js';
 import { logUserAction } from './src/utils/action_logger.js';
 import LeagueRules from './src/core/rules.js';
 import { getAllRulesets, getRulesetById } from './src/rulesets.js';
-import { generateSchedule } from './src/systems/schedule_generator.js';
 import rulesStore from './src/state/rules_store.js';
+import { initializeSeasonSchedule } from './src/systems/season_setup.js';
 import { valuePlayerContract, normalizeContractTerms, negotiateContractOffer as evaluateNegotiation } from './src/systems/contracts.js';
 import { determineFreeAgencyEligibility, rankFreeAgent, ensureFreeAgencyState, processFreeAgentSigning } from './src/systems/free_agency.js';
 import {
@@ -1616,6 +1616,12 @@ function normalizeSeasonInfo(state){
   }
   state.seasonInfo = rebuildSeasonCalendarInfo(state.seasonInfo);
   return state.seasonInfo;
+}
+
+function applySeasonSchedule(state, { rules, seed, repeats }) {
+  const result = initializeSeasonSchedule(state, { rules, seed, repeats });
+  normalizeSeasonInfo(state);
+  return result;
 }
 
 function defaultLeagueState(){
@@ -3913,7 +3919,11 @@ const State=(function(){ const saved=localStorage.getItem(SAVE_KEY); if(saved){ 
   normalizeSquadAssignments(baseState);
   normalizeNarrativeState(baseState);
   normalizeLeagueState(baseState);
-  normalizeSeasonInfo(baseState);
+  applySeasonSchedule(baseState, {
+    rules: baseState.league.rules,
+    seed: (baseState.seed || 2025) + (baseState.season || 0),
+    repeats: 6
+  });
   if(Array.isArray(baseState.teams)){ baseState.teams.forEach(team=>{ calculateDraftTeamNeeds(baseState, team.team_id); }); }
   return baseState;
 })();
@@ -5092,19 +5102,11 @@ function renderSeasonSettings(){
           const seed=parseInt($("#seed").value)||2025;
           const reps=parseInt($("#repeats").value)||6;
 
-          const { schedule, calendarInfo } = generateSchedule({
-            teams: State.teams,
+          const { schedule, calendarInfo } = applySeasonSchedule(State, {
             rules: newRules,
             seed: seed + State.season,
             repeats: reps
           });
-
-          State.seasonInfo = calendarInfo;
-          normalizeSeasonInfo(State);
-
-          State.league.rules.gamesPerTeam = calendarInfo.gamesPerTeam || newRules.gamesPerTeam;
-
-          State.schedule = schedule;
           State.results=[];
           State.curr_day=1;
           State.weekXP={}; State.weekXPLog={};
@@ -9043,21 +9045,11 @@ $("#btnGen").onclick=()=>{
   normalizeLeagueState(State);
   const rules = LeagueRules.ensureLeagueRules(State.league);
 
-  const { schedule, calendarInfo } = generateSchedule({
-    teams: State.teams,
+  const { schedule, calendarInfo } = applySeasonSchedule(State, {
     rules,
     seed: seed + State.season,
     repeats: reps
   });
-
-  State.seasonInfo = calendarInfo;
-  normalizeSeasonInfo(State);
-
-  State.league.rules = {
-    ...rules,
-    gamesPerTeam: calendarInfo.gamesPerTeam || rules.gamesPerTeam,
-  };
-  State.schedule = schedule;
   State.results=[];
   State.curr_day=1;
   State.weekXP={}; State.weekXPLog={};
