@@ -180,4 +180,47 @@ describe('sponsors', () => {
     expect(repeat.totalPayout).toBe(0);
     expect(finance.budget.reserves).toBe(initialReserves + 300000);
   });
+
+  it('ensures finances for missing team entries and applies payouts', () => {
+    const state = {
+      curr_day: 1,
+      teams: [
+        { team_id: 1, name: 'Tokyo Swallows' }
+      ],
+      teamSponsors: {
+        1: {
+          deals: [
+            { id: 'new-deal', name: 'New Deal', base: { amount: 100000 }, bonusTriggers: [] }
+          ]
+        }
+      },
+      results: []
+    };
+
+    const ensureTeamFinances = jest.fn((tid) => {
+      if (!state.teamFinances) {
+        state.teamFinances = {};
+      }
+      if (!state.teamFinances[tid]) {
+        state.teamFinances[tid] = {
+          budget: { reserves: 0 },
+          revenue: { ticket: 0, merch: 0, media: 0, other: 0, sponsors: 0, total: 0 }
+        };
+      }
+    });
+
+    const result = evaluateSponsorMilestonesForDay(state, {
+      day: 1,
+      stage: 'REG',
+      previousStage: null,
+      results: state.results
+    }, { ensureTeamFinances, logFinanceEvent: () => {} });
+
+    expect(ensureTeamFinances).toHaveBeenCalledWith(1);
+    expect(state.teamFinances[1]).toBeDefined();
+    expect(state.teamFinances[1].budget.reserves).toBe(100000);
+    expect(state.teamFinances[1].revenue.sponsors).toBe(100000);
+    expect(state.teamFinances[1].revenue.total).toBe(100000);
+    expect(result.totalPayout).toBe(100000);
+  });
 });
