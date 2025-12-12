@@ -310,7 +310,7 @@ export function evaluateSponsorMilestonesForDay(state, context = {}, deps = {}) 
 
     if (!state.teamFinances || !state.teamFinances[tid]) {
       if (ensureFinances) {
-        ensureFinances();
+        ensureFinances(tid);
       }
     }
     const finance = state.teamFinances?.[tid];
