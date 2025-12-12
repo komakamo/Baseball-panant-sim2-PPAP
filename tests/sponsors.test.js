@@ -223,4 +223,43 @@ describe('sponsors', () => {
     expect(state.teamFinances[1].revenue.total).toBe(100000);
     expect(result.totalPayout).toBe(100000);
   });
+
+  it('creates finance via dependency and applies payouts when finance was missing', () => {
+    const state = {
+      curr_day: 12,
+      teams: [
+        { team_id: 2, name: 'Osaka Phoenix' }
+      ],
+      teamSponsors: {
+        2: {
+          deals: [
+            { id: 'phoenix-deal', name: 'Phoenix Deal', base: { amount: 75000 }, bonusTriggers: [] }
+          ]
+        }
+      },
+      results: []
+    };
+
+    const ensureTeamFinances = jest.fn((tid) => {
+      state.teamFinances = state.teamFinances || {};
+      if (!state.teamFinances[tid]) {
+        state.teamFinances[tid] = {};
+      }
+      return state.teamFinances[tid];
+    });
+
+    const result = evaluateSponsorMilestonesForDay(state, {
+      day: 12,
+      stage: 'REG',
+      previousStage: null,
+      results: state.results
+    }, { ensureTeamFinances, logFinanceEvent: () => {} });
+
+    expect(ensureTeamFinances).toHaveBeenCalledWith(2);
+    expect(state.teamFinances?.[2]).toBeDefined();
+    expect(state.teamFinances[2].budget.reserves).toBe(75000);
+    expect(state.teamFinances[2].revenue.sponsors).toBe(75000);
+    expect(state.teamFinances[2].revenue.total).toBe(75000);
+    expect(result.totalPayout).toBe(75000);
+  });
 });
