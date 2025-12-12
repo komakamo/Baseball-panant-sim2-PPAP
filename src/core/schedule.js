@@ -40,16 +40,25 @@ function makeRoundRobinRounds(teamIds) {
 }
 
 function makeInterleagueRounds(homeIds, awayIds, rng) {
-  const len = Math.min(homeIds.length, awayIds.length);
-  if (len === 0) return [];
-  const home = shuffle(homeIds.slice(0, len), rng);
-  const rotation = shuffle(awayIds.slice(0, len), rng);
+  const maxLen = Math.max(homeIds.length, awayIds.length);
+  if (maxLen === 0) return [];
+
+  const home = shuffle(homeIds.slice(), rng);
+  const away = shuffle(awayIds.slice(), rng);
+
+  while (home.length < maxLen) home.push(null);
+  while (away.length < maxLen) away.push(null);
+
   const rounds = [];
-  let rotated = rotation.slice();
-  for (let r = 0; r < len; r++) {
+  let rotated = away.slice();
+  for (let r = 0; r < maxLen; r++) {
     const pairs = [];
-    for (let i = 0; i < len; i++) {
-      pairs.push([home[i], rotated[i]]);
+    for (let i = 0; i < maxLen; i++) {
+      const h = home[i];
+      const a = rotated[i];
+      if (h != null && a != null) {
+        pairs.push([h, a]);
+      }
     }
     rounds.push(pairs);
     rotated.push(rotated.shift());
