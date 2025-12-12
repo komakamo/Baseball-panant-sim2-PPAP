@@ -1916,9 +1916,16 @@ function hasBlockingRosterViolations(tid = State.userTeamId ?? 0){
 function updateAdvanceButtonsState(){
   const disabled = hasBlockingRosterViolations();
   const btnToday = document.querySelector('#btnToday');
-  if(btnToday) btnToday.disabled = disabled;
+  if(btnToday){
+    btnToday.disabled = false; // allow click to show resolution modal instead of blocking interaction
+    btnToday.dataset.blockedRoster = disabled ? 'true' : 'false';
+  }
   const btnEnd = document.querySelector('#btnEnd');
-  if(btnEnd) btnEnd.disabled = disabled;
+  if(btnEnd){
+    // keep enabled so the modal logic in the click handler can guide the user
+    btnEnd.disabled = false;
+    btnEnd.dataset.blockedRoster = disabled ? 'true' : 'false';
+  }
   const warn = document.querySelector('#advanceWarning');
   if(warn){
     if(!disabled){
