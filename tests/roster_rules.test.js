@@ -145,6 +145,35 @@ describe('roster rules', () => {
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
+  it('falls back to default limits when rules are empty or missing values', () => {
+    const roster = {
+      bats: [
+        { id: 'b1', name: '外国1', isForeign: true },
+        { id: 'b2', name: '外国2', isForeign: true },
+      ],
+      pits: [
+        { id: 'p1', name: '外国3', isForeign: true },
+        { id: 'p2', name: '外国4', isForeign: true },
+        { id: 'p3', name: '外国5', isForeign: true },
+      ],
+      activeIds: ['b1', 'b2', 'p1', 'p2', 'p3']
+    };
+
+    const resultWithEmpty = validateForeignPlayerLimits(roster, {});
+    expect(resultWithEmpty.limit).toBe(4);
+    expect(resultWithEmpty.warningThreshold).toBe(3);
+    expect(resultWithEmpty.errors[0]).toBe('外国人枠超過: 5/4');
+
+    const resultWithUndefined = validateForeignPlayerLimits(roster, {
+      roster: {
+        foreignPlayers: { limit: undefined, warningThreshold: undefined }
+      }
+    });
+    expect(resultWithUndefined.limit).toBe(4);
+    expect(resultWithUndefined.warningThreshold).toBe(3);
+    expect(resultWithUndefined.errors[0]).toBe('外国人枠超過: 5/4');
+  });
+
   it('normalizeRules preserves explicit interleague disable flag', () => {
     const rules = normalizeRules({
       interleague: { enabled: false, rounds: 3 }

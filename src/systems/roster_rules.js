@@ -81,10 +81,14 @@ function buildActiveSet(roster) {
 
 import { normalizeRules } from '../core/rules.js';
 
+const DEFAULT_FOREIGN_RULES = normalizeRules({}).roster?.foreignPlayers || {};
+
 export function validateForeignPlayerLimits(roster, rules = {}) {
   const normalizedRules = normalizeRules(rules);
   const rosterRules = normalizedRules.roster || {};
   const rule = rosterRules.foreignPlayers || {};
+  const limit = rule.limit ?? DEFAULT_FOREIGN_RULES.limit;
+  const warningThreshold = rule.warningThreshold ?? DEFAULT_FOREIGN_RULES.warningThreshold;
   const label = rule.label || FALLBACK_LABEL;
 
   const players = uniquePlayersFrom(roster || {});
@@ -98,21 +102,21 @@ export function validateForeignPlayerLimits(roster, rules = {}) {
 
   const errors = [];
   const warnings = [];
-  if (rule.limit != null) {
-    if (foreignCount > rule.limit) {
-      errors.push(`${label}超過: ${foreignCount}/${rule.limit}`);
-    } else if (rule.warningThreshold != null && foreignCount > rule.warningThreshold) {
-      warnings.push(`${label}が上限目前: ${foreignCount}/${rule.limit}`);
+  if (limit != null) {
+    if (foreignCount > limit) {
+      errors.push(`${label}超過: ${foreignCount}/${limit}`);
+    } else if (warningThreshold != null && foreignCount > warningThreshold) {
+      warnings.push(`${label}が上限目前: ${foreignCount}/${limit}`);
     }
   }
 
   const result = {
     label: label,
-    limit: rule.limit,
-    warningThreshold: rule.warningThreshold,
+    limit,
+    warningThreshold,
     foreignCount,
     activeCount,
-    availableSlots: rule.limit != null ? Math.max(0, rule.limit - foreignCount) : null,
+    availableSlots: limit != null ? Math.max(0, limit - foreignCount) : null,
     errors,
     warnings,
     foreignPlayers: foreignPlayers.map(player => ({
