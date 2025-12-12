@@ -67,14 +67,16 @@ function buildActiveSet(roster) {
     roster?.ichi,
   ];
   const set = new Set();
+  let hasActiveSource = false;
   for (const raw of rawLists) {
+    if (raw != null) hasActiveSource = true;
     const arr = toArray(raw);
     for (const value of arr) {
       const id = toId(value);
       if (id != null) set.add(id);
     }
   }
-  return set;
+  return { set, hasActiveSource };
 }
 
 import { normalizeRules } from '../core/rules.js';
@@ -86,10 +88,10 @@ export function validateForeignPlayerLimits(roster, rules = {}) {
   const label = rule.label || FALLBACK_LABEL;
 
   const players = uniquePlayersFrom(roster || {});
-  const activeSet = buildActiveSet(roster || {});
-  const activePlayers = activeSet.size > 0
+  const { set: activeSet, hasActiveSource } = buildActiveSet(roster || {});
+  const activePlayers = hasActiveSource
     ? players.filter(p => activeSet.has(toId(p?.id ?? p?.pid)))
-    : [];
+    : players;
   const foreignPlayers = activePlayers.filter(isForeignPlayer);
   const foreignCount = foreignPlayers.length;
   const activeCount = activePlayers.length;
